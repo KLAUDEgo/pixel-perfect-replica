@@ -104,7 +104,7 @@ export function Reveal({ children, className = "", delay = 0 }: { children: Reac
     const el = ref.current;
     if (!el) return;
     const io = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting) { el.classList.add("is-in"); io.disconnect(); }
+      if (e?.isIntersecting) { el.classList.add("is-in"); io.disconnect(); }
     }, { threshold: 0.15 });
     io.observe(el);
     return () => io.disconnect();
