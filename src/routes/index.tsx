@@ -1,14 +1,38 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { offers, services } from "@/data/services";
-import { CtaButton, Footer, Reveal, ServiceLink, SiteHeader } from "@/components/site";
+import { CtaButton, Footer, ServiceLink, SiteHeader } from "@/components/site";
+import {
+  ContactSection,
+  DashboardPreview,
+  FaqSection,
+  Hero,
+  HowItWorks,
+  MerchantSide,
+  OffersSection,
+  OptionsSection,
+  Problem,
+  RoiSimulator,
+  Stats,
+  WeHandleIt,
+} from "@/components/home";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "mégalopole — Cartes fidélité pour fast-foods" },
-      { name: "description", content: "Une carte fidélité dans le téléphone de vos clients. Trois offres : Essentiel, Pro, Premium." },
-      { property: "og:title", content: "mégalopole — Cartes fidélité pour fast-foods" },
-      { property: "og:description", content: "Faites revenir vos clients avec une carte fidélité dans leur téléphone." },
+      { title: "mégalopole — La carte de fidélité digitale pour les restaurants" },
+      {
+        name: "description",
+        content:
+          "La carte de fidélité digitale qui fait revenir vos clients : dans leur téléphone, sans appli, sans compte. Fast-foods et restaurants de Grasse à Nice.",
+      },
+      {
+        property: "og:title",
+        content: "mégalopole — La carte de fidélité digitale pour les restaurants",
+      },
+      {
+        property: "og:description",
+        content: "Faites revenir vos clients avec une carte de fidélité dans leur téléphone.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -16,62 +40,52 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-function Index() {
+function Comparatif() {
   return (
-    <div>
-      <SiteHeader />
-      <section className="mx-auto max-w-6xl px-5 py-24">
-        <p className="label mb-6 text-primary">Fidélité pour fast-foods</p>
-        <h1 className="title text-6xl md:text-8xl">
-          vos clients <span className="mark">reviennent</span>, <br />on s'occupe du reste.
-        </h1>
-        <p className="mt-8 max-w-xl text-lg text-muted-foreground">
-          Une carte fidélité dans le téléphone de vos clients, des rappels automatiques et un suivi clair.
-        </p>
-      </section>
-
-      <section id="offres" className="mx-auto max-w-6xl scroll-mt-24 px-5 pb-24">
-        <h2 className="title mb-12 text-5xl">nos <span className="mark">offres</span></h2>
-        <div className="grid gap-6 md:grid-cols-3">
-          {offers.map((o, i) => (
-            <Reveal key={o.slug} delay={i * 100}>
-              <article className={`${i % 2 ? "fold-r" : "fold"} flex h-full flex-col p-8 ${o.featured ? "panel-paper" : "border bg-card"}`}>
-                <p className="label mb-2 opacity-70">{o.tagline}</p>
-                <h3 className="title text-5xl">{o.name}</h3>
-                <p className="mt-4"><span className="title text-4xl">{o.price}</span> <span className="label">HT / mois</span></p>
-                <p className="label mt-1 opacity-70">+ {o.setup} HT d'installation</p>
-                <ul className="mt-6 flex-1 space-y-2 text-sm">
-                  {o.services.map((s) => <li key={s}><ServiceLink slug={s} /></li>)}
-                </ul>
-                <Link to="/offres/$slug" params={{ slug: o.slug }} className={`mt-8 border-2 px-5 py-3 text-center font-bold transition-colors ${o.featured ? "border-ink hover:bg-ink hover:text-paper" : "border-primary text-primary hover:bg-primary hover:text-primary-foreground"}`}>
-                  Voir le détail →
-                </Link>
-              </article>
-            </Reveal>
-          ))}
-        </div>
-        <p className="label mt-6 text-muted-foreground">Tarifs indicatifs</p>
-      </section>
-
-      <section id="comparatif" className="mx-auto max-w-6xl scroll-mt-24 px-5 pb-24">
-        <h2 className="title mb-10 text-5xl">le <span className="mark">comparatif</span></h2>
-        <div className="overflow-x-auto border">
-          <table className="w-full text-sm">
+    <section id="comparatif" className="mx-auto max-w-6xl scroll-mt-24 px-5 py-20">
+      <details className="group border-2 border-paper/20">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-6 p-6">
+          <span className="title text-3xl md:text-4xl">
+            comparer les offres <span className="mark">en détail</span>
+          </span>
+          <span className="text-3xl text-primary transition-transform group-open:rotate-45">+</span>
+        </summary>
+        <div className="overflow-x-auto border-t">
+          <table className="w-full min-w-[560px] text-sm">
             <thead>
               <tr className="border-b">
                 <th className="label p-4 text-left">Service</th>
                 {offers.map((o) => (
-                  <th key={o.slug} className="p-4"><Link to="/offres/$slug" params={{ slug: o.slug }} className="title link-y text-2xl">{o.name}</Link></th>
+                  <th key={o.slug} className="p-4">
+                    <Link
+                      to="/offres/$slug"
+                      params={{ slug: o.slug }}
+                      className="title link-y text-2xl"
+                    >
+                      {o.name}
+                    </Link>
+                    <div className="label mt-1 text-muted-foreground">{o.price} / mois</div>
+                  </th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {services.map((s) => (
                 <tr key={s.slug} className="border-b last:border-0 hover:bg-muted">
-                  <td className="p-4"><ServiceLink slug={s.slug} /></td>
+                  <td className="p-4">
+                    <ServiceLink slug={s.slug} />
+                  </td>
                   {offers.map((o) => (
                     <td key={o.slug} className="p-4 text-center">
-                      {o.services.includes(s.slug) ? <span className="text-primary">●</span> : <span className="text-muted-foreground">—</span>}
+                      {o.services.includes(s.slug) ? (
+                        <span className="text-primary" aria-label="inclus">
+                          ●
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground" aria-label="non inclus">
+                          —
+                        </span>
+                      )}
                     </td>
                   ))}
                 </tr>
@@ -79,8 +93,31 @@ function Index() {
             </tbody>
           </table>
         </div>
-        <div className="mt-12 flex justify-center"><CtaButton /></div>
-      </section>
+      </details>
+      <div className="mt-12 flex justify-center">
+        <CtaButton />
+      </div>
+    </section>
+  );
+}
+
+function Index() {
+  return (
+    <div>
+      <SiteHeader />
+      <Hero />
+      <Problem />
+      <Stats />
+      <HowItWorks />
+      <MerchantSide />
+      <DashboardPreview />
+      <WeHandleIt />
+      <OffersSection />
+      <Comparatif />
+      <OptionsSection />
+      <RoiSimulator />
+      <FaqSection />
+      <ContactSection />
       <Footer />
     </div>
   );

@@ -10,12 +10,24 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DevisRouteImport } from './routes/devis'
+import { Route as OptionsRouteImport } from './routes/options'
 import { Route as OffresSlugRouteImport } from './routes/offres.$slug'
 import { Route as ServicesSlugRouteImport } from './routes/services.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DevisRoute = DevisRouteImport.update({
+  id: '/devis',
+  path: '/devis',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OptionsRoute = OptionsRouteImport.update({
+  id: '/options',
+  path: '/options',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OffresSlugRoute = OffresSlugRouteImport.update({
@@ -31,30 +43,44 @@ const ServicesSlugRoute = ServicesSlugRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/devis': typeof DevisRoute
+  '/options': typeof OptionsRoute
   '/offres/$slug': typeof OffresSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/devis': typeof DevisRoute
+  '/options': typeof OptionsRoute
   '/offres/$slug': typeof OffresSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/devis': typeof DevisRoute
+  '/options': typeof OptionsRoute
   '/offres/$slug': typeof OffresSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/offres/$slug' | '/services/$slug'
+  fullPaths: '/' | '/devis' | '/options' | '/offres/$slug' | '/services/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/offres/$slug' | '/services/$slug'
-  id: '__root__' | '/' | '/offres/$slug' | '/services/$slug'
+  to: '/' | '/devis' | '/options' | '/offres/$slug' | '/services/$slug'
+  id:
+    | '__root__'
+    | '/'
+    | '/devis'
+    | '/options'
+    | '/offres/$slug'
+    | '/services/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DevisRoute: typeof DevisRoute
+  OptionsRoute: typeof OptionsRoute
   OffresSlugRoute: typeof OffresSlugRoute
   ServicesSlugRoute: typeof ServicesSlugRoute
 }
@@ -66,6 +92,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/devis': {
+      id: '/devis'
+      path: '/devis'
+      fullPath: '/devis'
+      preLoaderRoute: typeof DevisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/options': {
+      id: '/options'
+      path: '/options'
+      fullPath: '/options'
+      preLoaderRoute: typeof OptionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/offres/$slug': {
@@ -87,6 +127,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DevisRoute: DevisRoute,
+  OptionsRoute: OptionsRoute,
   OffresSlugRoute: OffresSlugRoute,
   ServicesSlugRoute: ServicesSlugRoute,
 }
