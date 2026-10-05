@@ -267,7 +267,7 @@ export function ServiceIllustration({ slug }: { slug: string }) {
     case "flyers":
       return (
         <Frame>
-          <div className="relative h-72 w-56 bg-[oklch(0.62_0.08_70)]">
+          <div className="relative h-72 w-56 bg-kraft">
             <div className="absolute -top-10 left-1/2 w-40 -translate-x-1/2 rotate-[-6deg] bg-primary p-4 text-primary-foreground anim-float">
               <div className="title text-2xl">ton 10e menu offert</div>
               <div className="mt-3"><QR size={48} /></div>
