@@ -12,24 +12,37 @@ export type Service = {
   benefits: string[];
   faq: { q: string; a: string }[];
   /** Sections supplémentaires (rubriques, exemples, programme…) */
-  sections?: { title: string; intro?: string; items: { label?: string; title: string; text: string }[] }[];
+  sections?: {
+    title: string;
+    intro?: string;
+    items: { label?: string; title: string; text: string }[];
+  }[];
 };
 
 export const services: Service[] = [
   {
     slug: "carte-personnalisee",
     name: "Carte fidélité personnalisée",
-    enClair: "Votre carte dans Apple Wallet et Google Wallet, avec votre logo, vos couleurs et votre récompense.",
+    enClair:
+      "Votre carte dans Apple Wallet et Google Wallet, avec votre logo, vos couleurs et votre récompense.",
     steps: [
       "On récupère votre logo et vos couleurs.",
       "On vous propose 2 designs de carte.",
       "Vous validez celui qui vous plaît (ou on ajuste).",
       "La carte est en ligne, vos clients peuvent s'inscrire.",
     ],
-    example: "Smash Club choisit une carte noire avec son logo jaune et la récompense « 10e menu offert ». En 48 h, la carte est disponible dans le téléphone des clients.",
-    benefits: ["Aucune appli à télécharger pour le client", "Une carte qui ne se perd jamais", "Votre marque visible chaque jour sur leur téléphone"],
+    example:
+      "Smash Club choisit une carte noire avec son logo jaune et la récompense « 10e menu offert ». Dès qu'il valide le design, la carte est disponible dans le téléphone des clients.",
+    benefits: [
+      "Aucune appli à télécharger pour le client",
+      "Une carte qui ne se perd jamais",
+      "Votre marque visible chaque jour sur leur téléphone",
+    ],
     faq: [
-      { q: "Le client doit-il installer une application ?", a: "Non. La carte s'ajoute directement dans le portefeuille de son téléphone." },
+      {
+        q: "Le client doit-il installer une application ?",
+        a: "Non. La carte s'ajoute directement dans le portefeuille de son téléphone.",
+      },
       { q: "Puis-je changer la récompense plus tard ?", a: "Oui, il suffit de nous le demander." },
     ],
   },
@@ -43,10 +56,20 @@ export const services: Service[] = [
       "Un scan = un tampon, sans limite.",
     ],
     example: "Un samedi soir, Smash Club scanne 220 cartes. Le prix de l'abonnement ne bouge pas.",
-    benefits: ["Un prix fixe, peu importe votre succès", "Aucune mauvaise surprise sur la facture", "Pas besoin de matériel spécial"],
+    benefits: [
+      "Un prix fixe, peu importe votre succès",
+      "Aucune mauvaise surprise sur la facture",
+      "Pas besoin de matériel spécial",
+    ],
     faq: [
-      { q: "Y a-t-il un plafond caché ?", a: "Non, ni sur le nombre de clients, ni sur le nombre de scans." },
-      { q: "Combien de téléphones peuvent scanner ?", a: "Autant que nécessaire pour votre équipe." },
+      {
+        q: "Y a-t-il un plafond caché ?",
+        a: "Non, ni sur le nombre de clients, ni sur le nombre de scans.",
+      },
+      {
+        q: "Combien de téléphones peuvent scanner ?",
+        a: "Autant que nécessaire pour votre équipe.",
+      },
     ],
   },
   {
@@ -58,23 +81,51 @@ export const services: Service[] = [
       "On vous montre les rubriques en 10 minutes.",
       "Vous consultez vos chiffres quand vous voulez, sur téléphone ou ordinateur.",
     ],
-    example: "Le gérant de Smash Club voit chaque lundi ses 10 meilleurs habitués et les clients absents depuis 30 jours.",
-    benefits: ["Vous connaissez enfin vos habitués", "Vous voyez qui ne revient plus", "Des chiffres clairs, sans tableur"],
+    example:
+      "Le gérant de Smash Club voit chaque lundi ses 10 meilleurs habitués et les clients absents depuis 30 jours.",
+    benefits: [
+      "Vous connaissez enfin vos habitués",
+      "Vous voyez qui ne revient plus",
+      "Des chiffres clairs, sans tableur",
+    ],
     faq: [
-      { q: "Faut-il être à l'aise avec l'informatique ?", a: "Non, tout est pensé pour être lu en un coup d'œil." },
-      { q: "Mes données sont-elles partagées ?", a: "Non, elles restent les vôtres." },
+      {
+        q: "Faut-il être à l'aise avec l'informatique ?",
+        a: "Non, tout est pensé pour être lu en un coup d'œil.",
+      },
+      { q: "À qui appartiennent les données de mes clients ?", a: "[À COMPLÉTER]" },
     ],
     sections: [
       {
         title: "Les rubriques",
         intro: "Données d'exemple.",
         items: [
-          { label: "01", title: "Accueil", text: "Clients inscrits, passages, récompenses données et évolution sur le mois." },
-          { label: "02", title: "Clients", text: "La liste de vos clients, leur nombre de passages et leur dernière visite." },
-          { label: "03", title: "Meilleurs habitués", text: "Votre top 10 des clients les plus fidèles." },
-          { label: "04", title: "Clients inactifs", text: "Ceux qui ne sont pas revenus depuis 30, 60 ou 90 jours." },
+          {
+            label: "01",
+            title: "Accueil",
+            text: "Clients inscrits, passages, récompenses données et évolution sur le mois.",
+          },
+          {
+            label: "02",
+            title: "Clients",
+            text: "La liste de vos clients, leur nombre de passages et leur dernière visite.",
+          },
+          {
+            label: "03",
+            title: "Meilleurs habitués",
+            text: "Votre top 10 des clients les plus fidèles.",
+          },
+          {
+            label: "04",
+            title: "Clients inactifs",
+            text: "Ceux qui ne sont pas revenus depuis 30, 60 ou 90 jours.",
+          },
           { label: "05", title: "Notifications", text: "Les messages envoyés et ceux programmés." },
-          { label: "06", title: "Ma carte", text: "L'aperçu de votre carte et de votre récompense." },
+          {
+            label: "06",
+            title: "Ma carte",
+            text: "L'aperçu de votre carte et de votre récompense.",
+          },
         ],
       },
     ],
@@ -88,28 +139,48 @@ export const services: Service[] = [
       "Le client approche de sa récompense.",
       "Il reçoit une notification sur son téléphone, sans action de votre part.",
     ],
-    example: "Un client de Smash Club a 8 tampons sur 10. Le lendemain, il reçoit « Plus que 2 menus avant votre menu offert ! » et revient le soir même.",
-    benefits: ["Des clients qui reviennent plus vite", "Zéro travail pour vous", "Un message utile, jamais envahissant"],
+    example:
+      "Un client de Smash Club a 8 tampons sur 10. Le lendemain, il reçoit « Plus que 2 menus avant votre menu offert ! » et revient le soir même.",
+    benefits: [
+      "Des clients qui reviennent plus vite",
+      "Zéro travail pour vous",
+      "Un message utile, que le client peut désactiver",
+    ],
     faq: [
-      { q: "Le client peut-il désactiver les messages ?", a: "Oui, il garde toujours la main depuis son téléphone." },
+      {
+        q: "Le client peut-il désactiver les messages ?",
+        a: "Oui, il garde toujours la main depuis son téléphone.",
+      },
       { q: "Puis-je modifier le texte ?", a: "Oui, on l'adapte à votre ton." },
     ],
   },
   {
     slug: "relances-et-anniversaires",
     name: "Relances et anniversaires",
-    enClair: "Un message automatique aux clients absents depuis 30 jours et le jour de leur anniversaire.",
+    enClair:
+      "Un message automatique aux clients absents depuis 30 jours et le jour de leur anniversaire.",
     steps: [
       "Le client fait sa dernière visite.",
       "30 jours passent sans passage.",
       "Il reçoit automatiquement un message avec une raison de revenir.",
       "Le jour de son anniversaire, il reçoit un petit cadeau.",
     ],
-    example: "Un client de Smash Club n'est pas venu depuis un mois. Il reçoit « On ne vous voit plus ! Vos frites sont offertes cette semaine. » et repasse le jeudi.",
-    benefits: ["Récupérer les clients qui s'éloignent", "Créer un lien personnel", "Tout tourne tout seul"],
+    example:
+      "Un client de Smash Club n'est pas venu depuis un mois. Il reçoit « On ne vous voit plus ! Vos frites sont offertes cette semaine. » et repasse le jeudi.",
+    benefits: [
+      "Récupérer les clients qui s'éloignent",
+      "Créer un lien personnel",
+      "Tout tourne tout seul",
+    ],
     faq: [
-      { q: "Comment connaît-on l'anniversaire ?", a: "Le client peut l'indiquer en s'inscrivant, s'il le souhaite." },
-      { q: "Peut-on changer le délai de 30 jours ?", a: "Oui, on l'ajuste à votre rythme de visites." },
+      {
+        q: "Comment connaît-on l'anniversaire ?",
+        a: "Le client peut l'indiquer en s'inscrivant, s'il le souhaite.",
+      },
+      {
+        q: "Peut-on changer le délai de 30 jours ?",
+        a: "Oui, on l'ajuste à votre rythme de visites.",
+      },
     ],
   },
   {
@@ -122,10 +193,18 @@ export const services: Service[] = [
       "On l'envoie au bon moment.",
       "Le résultat apparaît dans votre bilan mensuel.",
     ],
-    example: "Smash Club a peu de monde entre 15 h et 18 h. Campagne « tampon double l'après-midi » envoyée le mardi : l'heure creuse se remplit.",
-    benefits: ["Des clients en plus aux moments calmes", "Des messages rédigés pour vous", "Un résultat mesuré chaque mois"],
+    example:
+      "Smash Club a peu de monde entre 15 h et 18 h. Campagne « tampon double l'après-midi » envoyée le mardi : l'heure creuse se remplit.",
+    benefits: [
+      "Des clients en plus aux moments calmes",
+      "Des messages rédigés pour vous",
+      "Un résultat mesuré chaque mois",
+    ],
     faq: [
-      { q: "Combien de campagnes par mois ?", a: "Pro : 1 campagne par mois rédigée pour vous. Premium : 2 par mois, plus les événements." },
+      {
+        q: "Combien de campagnes par mois ?",
+        a: "Pro : 1 campagne par mois rédigée pour vous. Premium : 2 par mois, dont des offres événementielles (soir de match, Ramadan, rentrée…).",
+      },
       { q: "Dois-je écrire les messages ?", a: "Non, on s'en occupe. Vous validez simplement." },
     ],
     sections: [
@@ -146,7 +225,10 @@ export const services: Service[] = [
           { title: "Soir de match", text: "Un menu partage pour regarder le match." },
           { title: "Anniversaire", text: "Le restaurant fête ses 3 ans avec ses clients." },
           { title: "Ramadan", text: "Une offre spéciale pour la rupture du jeûne." },
-          { title: "Rentrée étudiante", text: "Un tampon offert sur présentation de la carte étudiante." },
+          {
+            title: "Rentrée étudiante",
+            text: "Un tampon offert sur présentation de la carte étudiante.",
+          },
           { title: "Nouveau produit", text: "Faire goûter la nouveauté aux habitués." },
         ],
       },
@@ -161,8 +243,13 @@ export const services: Service[] = [
       "On rédige une page claire avec un conseil.",
       "Vous la recevez au début du mois suivant.",
     ],
-    example: "Bilan de septembre de Smash Club : 84 nouveaux inscrits, 612 passages, 41 récompenses, 37 clients à relancer. Conseil : lancer une campagne « soir de match ».",
-    benefits: ["Savoir si la fidélité fonctionne", "Un conseil à appliquer tout de suite", "Une page, pas un rapport de 20 pages"],
+    example:
+      "Bilan de septembre de Smash Club : 84 nouveaux inscrits, 612 passages, 41 récompenses, 37 clients à relancer. Conseil : lancer une campagne « soir de match ».",
+    benefits: [
+      "Savoir si la fidélité fonctionne",
+      "Un conseil à appliquer tout de suite",
+      "Une page, pas un rapport de 20 pages",
+    ],
     faq: [
       { q: "Sous quel format ?", a: "Une page envoyée par WhatsApp ou e-mail." },
       { q: "Peut-on en parler ensemble ?", a: "Oui, posez-nous vos questions par message." },
@@ -172,9 +259,19 @@ export const services: Service[] = [
     slug: "deuxieme-carte",
     name: "Deuxième carte",
     enClair: "Une 2e carte pour une cible précise : étudiants, VIP ou carte midi.",
-    steps: ["On choisit la cible ensemble.", "On définit une récompense adaptée.", "On crée le design.", "La carte est en ligne."],
-    example: "Smash Club lance une carte « Étudiant » : 6 menus achetés = 1 offert, valable du lundi au jeudi.",
-    benefits: ["Parler à chaque type de client", "Attirer une nouvelle clientèle", "Mesurer chaque carte séparément"],
+    steps: [
+      "On choisit la cible ensemble.",
+      "On définit une récompense adaptée.",
+      "On crée le design.",
+      "La carte est en ligne.",
+    ],
+    example:
+      "Smash Club lance une carte « Étudiant » : 6 menus achetés = 1 offert, valable du lundi au jeudi.",
+    benefits: [
+      "Parler à chaque type de client",
+      "Attirer une nouvelle clientèle",
+      "Mesurer chaque carte séparément",
+    ],
     faq: [
       { q: "Un client peut-il avoir les deux cartes ?", a: "Oui, si vous le souhaitez." },
       { q: "Peut-on arrêter une carte ?", a: "Oui, à tout moment." },
@@ -184,9 +281,19 @@ export const services: Service[] = [
     slug: "design-saisonnier",
     name: "Design saisonnier",
     enClair: "Votre carte change de look 2 fois par an : été, fêtes, Ramadan…",
-    steps: ["On choisit les 2 moments de l'année.", "On propose le nouveau design.", "Vous validez.", "La carte se met à jour sur tous les téléphones."],
-    example: "En décembre, la carte Smash Club passe en version fêtes. En juin, elle passe en version été.",
-    benefits: ["Une carte qui reste vivante", "Une occasion de reparler à vos clients", "Aucune action pour le client"],
+    steps: [
+      "On choisit les 2 moments de l'année.",
+      "On propose le nouveau design.",
+      "Vous validez.",
+      "La carte se met à jour sur tous les téléphones.",
+    ],
+    example:
+      "En décembre, la carte Smash Club passe en version fêtes. En juin, elle passe en version été.",
+    benefits: [
+      "Une carte qui reste vivante",
+      "Une occasion de reparler à vos clients",
+      "Aucune action pour le client",
+    ],
     faq: [
       { q: "Les tampons sont-ils conservés ?", a: "Oui, seul le design change." },
       { q: "Peut-on choisir les saisons ?", a: "Oui, selon vos temps forts." },
@@ -203,20 +310,37 @@ export const services: Service[] = [
       "Ajustement de la récompense si besoin.",
       "Planning des campagnes du trimestre suivant.",
     ],
-    example: "Lors de la visite de Smash Club, on remplace un QR de table abîmé et on forme 2 nouveaux équipiers.",
-    benefits: ["Un suivi humain, sur place", "Une équipe toujours formée", "Un compte-rendu d'une page laissé après chaque visite"],
+    example:
+      "Lors de la visite de Smash Club, on remplace un QR de table abîmé et on forme 2 nouveaux équipiers.",
+    benefits: [
+      "Un suivi humain, sur place",
+      "Une équipe toujours formée",
+      "Un compte-rendu d'une page laissé après chaque visite",
+    ],
     faq: [
       { q: "Faut-il fermer pendant la visite ?", a: "Non, on s'adapte à vos heures calmes." },
-      { q: "Que contient le compte-rendu ?", a: "Les chiffres, ce qui a été fait et le plan du trimestre suivant." },
+      {
+        q: "Que contient le compte-rendu ?",
+        a: "Les chiffres, ce qui a été fait et le plan du trimestre suivant.",
+      },
     ],
   },
   {
     slug: "support-prioritaire",
     name: "Support prioritaire",
     enClair: "Réponse dans la journée par WhatsApp ou téléphone [HORAIRES À COMPLÉTER].",
-    steps: ["Vous nous écrivez ou appelez.", "Votre demande passe en priorité.", "Réponse dans la journée."],
-    example: "Le téléphone de scan de Smash Club est cassé un vendredi : on aide l'équipe à se connecter sur un autre appareil dans l'heure.",
-    benefits: ["Jamais bloqué en plein service", "Un interlocuteur qui vous connaît", "Par WhatsApp ou téléphone"],
+    steps: [
+      "Vous nous écrivez ou appelez.",
+      "Votre demande passe en priorité.",
+      "Réponse dans la journée.",
+    ],
+    example:
+      "Le téléphone de scan de Smash Club est cassé un vendredi : on aide l'équipe à se connecter sur un autre appareil dans la journée.",
+    benefits: [
+      "Jamais bloqué en plein service",
+      "Un interlocuteur qui vous connaît",
+      "Par WhatsApp ou téléphone",
+    ],
     faq: [
       { q: "Et avec Essentiel ou Pro ?", a: "Support standard par message [DÉLAI À COMPLÉTER]." },
       { q: "Le week-end ?", a: "[HORAIRES À COMPLÉTER]" },
@@ -225,15 +349,21 @@ export const services: Service[] = [
   {
     slug: "formation-equipe",
     name: "Formation de l'équipe",
-    enClair: "30 minutes sur place pour que toute votre équipe sache scanner et parler de la carte.",
+    enClair:
+      "30 minutes sur place pour que toute votre équipe sache scanner et parler de la carte.",
     steps: [
       "On fixe un créneau calme.",
       "On forme l'équipe en 30 minutes.",
       "On prend 10 minutes avec le gérant pour le tableau de bord.",
       "On laisse un mémo plastifié au comptoir.",
     ],
-    example: "Chez Smash Club, la formation a lieu à 15 h. À 15 h 40, toute l'équipe sait scanner et dire la phrase clé.",
-    benefits: ["Une équipe à l'aise dès le premier jour", "Plus d'inscriptions grâce à la bonne phrase", "Un mémo pour les nouveaux"],
+    example:
+      "Chez Smash Club, la formation a lieu à 15 h. À 15 h 40, toute l'équipe sait scanner et dire la phrase clé.",
+    benefits: [
+      "Une équipe à l'aise dès le premier jour",
+      "Plus d'inscriptions grâce à la bonne phrase",
+      "Un mémo pour les nouveaux",
+    ],
     faq: [
       { q: "Et si un employé arrive plus tard ?", a: "Le mémo au comptoir suffit pour démarrer." },
       { q: "Combien de personnes ?", a: "Toute l'équipe présente." },
@@ -242,12 +372,36 @@ export const services: Service[] = [
       {
         title: "Le programme des 30 minutes",
         items: [
-          { label: "5 min", title: "Pourquoi", text: "À quoi sert la carte et pourquoi elle fait revenir les clients." },
-          { label: "10 min", title: "Le scan", text: "Installation de l'appli, connexion, +1 tampon, entraînement sur carte test." },
-          { label: "5 min", title: "Valider une récompense", text: "Comment offrir le menu au bon moment." },
-          { label: "5 min", title: "La phrase à dire", text: "« Vous avez notre carte fidélité ? Scannez ici, votre 10e menu est offert. »" },
-          { label: "5 min", title: "Les cas pièges", text: "Téléphone du client à plat → recherche par nom ou numéro. Erreur de tampon. Client sans smartphone." },
-          { label: "+10 min", title: "Gérant", text: "Prise en main du tableau de bord + mémo plastifié laissé au comptoir." },
+          {
+            label: "5 min",
+            title: "Pourquoi",
+            text: "À quoi sert la carte et pourquoi elle fait revenir les clients.",
+          },
+          {
+            label: "10 min",
+            title: "Le scan",
+            text: "Installation de l'appli, connexion, +1 tampon, entraînement sur carte test.",
+          },
+          {
+            label: "5 min",
+            title: "Valider une récompense",
+            text: "Comment offrir le menu au bon moment.",
+          },
+          {
+            label: "5 min",
+            title: "La phrase à dire",
+            text: "« Vous avez notre carte fidélité ? Scannez ici, votre 10e menu est offert. »",
+          },
+          {
+            label: "5 min",
+            title: "Les cas pièges",
+            text: "Téléphone du client à plat → recherche par nom ou numéro. Erreur de tampon. Client sans smartphone.",
+          },
+          {
+            label: "+10 min",
+            title: "Gérant",
+            text: "Prise en main du tableau de bord + mémo plastifié laissé au comptoir.",
+          },
         ],
       },
     ],
@@ -256,20 +410,30 @@ export const services: Service[] = [
     slug: "presentoir-comptoir",
     name: "Présentoir comptoir",
     enClair: "Un présentoir en plexi avec QR code, posé près de la caisse.",
-    steps: ["On imprime le QR de votre carte.", "On installe le présentoir près de la caisse.", "Le client scanne en attendant sa commande."],
-    example: "Chez Smash Club, le présentoir est posé à côté du terminal de paiement : chaque client le voit en payant.",
+    steps: [
+      "On imprime le QR de votre carte.",
+      "On installe le présentoir près de la caisse.",
+      "Le client scanne en attendant sa commande.",
+    ],
+    example:
+      "Chez Smash Club, le présentoir est posé à côté du terminal de paiement : chaque client le voit en payant.",
     benefits: ["Visible au meilleur moment", "Inscription en 10 secondes", "Rien à expliquer"],
     faq: [
       { q: "Faut-il le brancher ?", a: "Non, c'est un simple support." },
-      { q: "Et s'il est abîmé ?", a: "Prévenez-nous, on le remplace." },
+      { q: "Et s'il est abîmé ?", a: "Prévenez-nous. [CONDITIONS DE REMPLACEMENT À COMPLÉTER]" },
     ],
   },
   {
     slug: "chevalet-grave",
     name: "Chevalet gravé",
     enClair: "Un chevalet en plexi gravé à votre logo, finition haut de gamme.",
-    steps: ["On récupère votre logo.", "On le grave sur le plexi avec le QR.", "On l'installe au comptoir."],
-    example: "Smash Club remplace son présentoir par un chevalet gravé à son logo, assorti à la déco.",
+    steps: [
+      "On récupère votre logo.",
+      "On le grave sur le plexi avec le QR.",
+      "On l'installe au comptoir.",
+    ],
+    example:
+      "Smash Club remplace son présentoir par un chevalet gravé à son logo, assorti à la déco.",
     benefits: ["Un rendu premium", "Votre marque mise en avant", "Durable et facile à nettoyer"],
     faq: [
       { q: "Est-ce inclus dans toutes les offres ?", a: "Non, uniquement dans Premium." },
@@ -280,36 +444,70 @@ export const services: Service[] = [
     slug: "qr-de-table",
     name: "QR de table",
     enClair: "Des plaques QR adhésives sur les tables : le client s'inscrit pendant qu'il mange.",
-    steps: ["On prépare les plaques à votre nombre de tables.", "On les colle sur chaque table.", "Le client scanne pendant son repas."],
-    example: "Smash Club a 12 tables : 12 plaques collées en 15 minutes, et les inscriptions augmentent pendant le service.",
-    benefits: ["Le client a le temps de s'inscrire", "Résiste au nettoyage quotidien", "Discret et efficace"],
+    steps: [
+      "On prépare les plaques à votre nombre de tables.",
+      "On les colle sur chaque table.",
+      "Le client scanne pendant son repas.",
+    ],
+    example:
+      "Smash Club a 12 tables : 12 plaques collées en 15 minutes, et les inscriptions augmentent pendant le service.",
+    benefits: [
+      "Le client a le temps de s'inscrire",
+      "Résiste au nettoyage quotidien",
+      "Discret et efficace",
+    ],
     faq: [
       { q: "Ça résiste aux produits ménagers ?", a: "Oui, les plaques sont prévues pour ça." },
-      { q: "Ça abîme les tables ?", a: "Non, l'adhésif se retire proprement." },
+      {
+        q: "Ça abîme les tables ?",
+        a: "On vous montre une plaque et on choisit l'emplacement avec vous avant la pose.",
+      },
     ],
   },
   {
     slug: "vitrophanie",
     name: "Vitrophanie",
-    enClair: "Un autocollant imprimé sur votre vitrine, lisible depuis la rue.",
-    steps: ["On crée le visuel à vos couleurs.", "On l'imprime au bon format.", "On le pose sur la vitrine."],
-    example: "Sur la vitrine de Smash Club : « Ton 10e menu offert — scanne ici ». La file d'attente s'inscrit avant même d'entrer.",
+    enClair:
+      "Un autocollant imprimé sur votre vitrine, lisible depuis la rue : sticker 20 × 20 cm (Essentiel, Pro) ou grande vitrophanie 40 × 40 cm et plus (Premium).",
+    steps: [
+      "On crée le visuel à vos couleurs.",
+      "On l'imprime au bon format.",
+      "On le pose sur la vitrine.",
+    ],
+    example:
+      "Sur la vitrine de Smash Club : « Ton 10e menu offert — scanne ici ». La file d'attente s'inscrit avant même d'entrer.",
     benefits: ["Attire les passants", "Occupe la file d'attente", "Visible 24 h sur 24"],
     faq: [
-      { q: "Ça se retire facilement ?", a: "Oui, sans laisser de trace." },
+      { q: "Ça se retire facilement ?", a: "Oui, on utilise un adhésif enlevable." },
       { q: "Peut-on choisir l'emplacement ?", a: "Oui, on le décide ensemble." },
     ],
   },
   {
     slug: "flyers",
     name: "Flyers",
-    enClair: "Glissés dans les sacs à emporter et les livraisons pour faire inscrire de nouveaux clients.",
-    steps: ["On crée le flyer recto-verso.", "On vous livre le stock.", "Votre équipe en glisse un dans chaque sac."],
-    example: "Chaque commande en livraison de Smash Club contient un flyer « Ton 10e menu offert ». Les clients livrés s'inscrivent depuis chez eux.",
-    benefits: ["Toucher les clients livrés", "Recto : l'accroche et le QR", "Verso : 3 étapes simples"],
+    enClair:
+      "Glissés dans les sacs à emporter et les livraisons pour faire inscrire de nouveaux clients.",
+    steps: [
+      "On crée le flyer recto-verso.",
+      "On vous livre le stock.",
+      "Votre équipe en glisse un dans chaque sac.",
+    ],
+    example:
+      "Chaque commande en livraison de Smash Club contient un flyer « Ton 10e menu offert ». Les clients livrés s'inscrivent depuis chez eux.",
+    benefits: [
+      "Toucher les clients livrés",
+      "Recto : l'accroche et le QR",
+      "Verso : 3 étapes simples",
+    ],
     faq: [
-      { q: "Combien de flyers ?", a: "On ajuste la quantité à votre volume de commandes." },
-      { q: "Et quand le stock est vide ?", a: "Prévenez-nous pour un réassort." },
+      {
+        q: "Combien de flyers ?",
+        a: "200 inclus dans Pro, 500 dans Premium ; réassort par lot de 500 à 39 € HT.",
+      },
+      {
+        q: "Et quand le stock est vide ?",
+        a: "Prévenez-nous pour un réassort (option 500 flyers, 39 € HT).",
+      },
     ],
   },
 ];
@@ -326,29 +524,57 @@ export type Offer = {
   featured?: boolean;
 };
 
-// Prix d'exemple : à remplacer par vos vrais tarifs.
+// Tarifs mégalopole (HT). Modifiez-les ici : toutes les pages se mettent à jour.
 export const offers: Offer[] = [
   {
     slug: "essentiel",
     name: "Essentiel",
     tagline: "Démarrer simplement",
-    price: "49 €",
-    setup: "199 €",
+    price: "39 €",
+    setup: "149 €",
     idealFor: "Idéal si vous êtes un petit fast-food qui veut démarrer simplement.",
-    installation: ["Création de la carte", "Pose du présentoir comptoir", "Formation de l'équipe (30 min)", "Accès au tableau de bord"],
-    services: ["carte-personnalisee", "scans-illimites", "tableau-de-bord", "rappels-automatiques", "formation-equipe", "presentoir-comptoir"],
+    installation: [
+      "Création du design de la carte et paramétrage",
+      "1 présentoir QR en plexi pour le comptoir",
+      "1 sticker vitrine 20 × 20 cm",
+      "Formation de l'équipe sur place (30 min)",
+    ],
+    services: [
+      "carte-personnalisee",
+      "scans-illimites",
+      "tableau-de-bord",
+      "rappels-automatiques",
+      "formation-equipe",
+      "presentoir-comptoir",
+      "vitrophanie",
+    ],
   },
   {
     slug: "pro",
     name: "Pro",
     tagline: "On fait revenir vos clients",
-    price: "89 €",
-    setup: "299 €",
+    price: "59 €",
+    setup: "199 €",
     idealFor: "Idéal si vous voulez que quelqu'un s'occupe de faire revenir vos clients.",
-    installation: ["Tout Essentiel", "Pose des QR de table", "Pose de la vitrophanie", "Livraison des flyers", "Réglage des relances automatiques"],
+    installation: [
+      "Toute l'installation Essentiel",
+      "4 plaques QR adhésives pour les tables",
+      "200 flyers",
+      "Réglage des relances automatiques",
+    ],
     services: [
-      "carte-personnalisee", "scans-illimites", "tableau-de-bord", "rappels-automatiques", "relances-et-anniversaires",
-      "campagnes", "bilan-mensuel", "formation-equipe", "presentoir-comptoir", "qr-de-table", "vitrophanie", "flyers",
+      "carte-personnalisee",
+      "scans-illimites",
+      "tableau-de-bord",
+      "rappels-automatiques",
+      "relances-et-anniversaires",
+      "campagnes",
+      "bilan-mensuel",
+      "formation-equipe",
+      "presentoir-comptoir",
+      "qr-de-table",
+      "vitrophanie",
+      "flyers",
     ],
     featured: true,
   },
@@ -356,14 +582,35 @@ export const offers: Offer[] = [
     slug: "premium",
     name: "Premium",
     tagline: "Le suivi complet",
-    price: "149 €",
-    setup: "449 €",
+    price: "89 €",
+    setup: "299 €",
     idealFor: "Idéal si vous avez un fort passage ou plusieurs salles et voulez un suivi complet.",
-    installation: ["Tout Pro", "Création de la deuxième carte", "Chevalet gravé à votre logo", "Planning des visites trimestrielles"],
+    installation: [
+      "Création de votre carte et de votre 2e carte",
+      "Chevalet plexi gravé à votre logo pour le comptoir",
+      "Plaques QR adhésives sur toutes les tables (jusqu'à 12)",
+      "Grande vitrophanie (40 × 40 cm et plus)",
+      "500 flyers",
+      "Réglage des relances automatiques",
+      "Formation de l'équipe sur place (30 min)",
+    ],
     services: [
-      "carte-personnalisee", "scans-illimites", "tableau-de-bord", "rappels-automatiques", "relances-et-anniversaires",
-      "campagnes", "bilan-mensuel", "deuxieme-carte", "design-saisonnier", "visite-trimestrielle", "support-prioritaire",
-      "formation-equipe", "chevalet-grave", "qr-de-table", "vitrophanie", "flyers", "presentoir-comptoir",
+      "carte-personnalisee",
+      "scans-illimites",
+      "tableau-de-bord",
+      "rappels-automatiques",
+      "relances-et-anniversaires",
+      "campagnes",
+      "bilan-mensuel",
+      "deuxieme-carte",
+      "design-saisonnier",
+      "visite-trimestrielle",
+      "support-prioritaire",
+      "formation-equipe",
+      "chevalet-grave",
+      "qr-de-table",
+      "vitrophanie",
+      "flyers",
     ],
   },
 ];
