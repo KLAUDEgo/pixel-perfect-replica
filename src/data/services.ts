@@ -1,6 +1,8 @@
 // Tout le contenu éditable du site : services et formules.
 // Modifiez les textes ici, les pages se mettent à jour automatiquement.
 
+import { SOCIAL_PACK_MONTHLY } from "./content";
+
 export type OfferSlug = "essentiel" | "pro" | "premium";
 
 export type Service = {
@@ -259,25 +261,36 @@ export const services: Service[] = [
     ],
   },
   {
-    slug: "deuxieme-carte",
-    name: "Deuxième carte",
-    enClair: "Une 2e carte pour une cible précise : étudiants, VIP ou carte midi.",
+    slug: "video-reseaux",
+    name: "Vidéo réseaux sociaux",
+    enClair:
+      "Chaque mois, une vidéo courte (Reels, TikTok) de votre commerce, tournée sur place et montée par nous, prête à publier.",
     steps: [
-      "On choisit la cible ensemble.",
-      "On définit une récompense adaptée.",
-      "On crée le design.",
-      "La carte est en ligne.",
+      "On choisit ensemble le sujet du mois : un produit, l'équipe, un moment fort.",
+      "On vient tourner sur place, en 20 minutes, pendant une heure calme.",
+      "On monte une vidéo verticale de 15 à 30 secondes, avec texte et musique.",
+      "Vous la recevez par WhatsApp, prête à publier.",
     ],
     example:
-      "Smash Club lance une carte « Étudiant » : 6 menus achetés = 1 offert, valable du lundi au jeudi.",
+      "Ce mois-ci, Smash Club reçoit une vidéo de 20 secondes du smash burger en préparation : la viande écrasée sur la plaque, le fromage qui fond, le burger servi. Le gérant la publie le vendredi soir.",
     benefits: [
-      "Parler à chaque type de client",
-      "Attirer une nouvelle clientèle",
-      "Mesurer chaque carte séparément",
+      "Une présence régulière sur les réseaux",
+      "Une vidéo pro sans y passer vos soirées",
+      "Votre commerce montré sous son meilleur jour",
     ],
     faq: [
-      { q: "Un client peut-il avoir les deux cartes ?", a: "Oui, si vous le souhaitez." },
-      { q: "Peut-on arrêter une carte ?", a: "Oui, à tout moment." },
+      {
+        q: "Qui publie la vidéo ?",
+        a: "Vous, ou nous si vous prenez le Pack réseaux sociaux.",
+      },
+      {
+        q: "Je peux choisir le sujet ?",
+        a: "Oui, on en parle ensemble avant le tournage.",
+      },
+      {
+        q: "Et si je veux plus de vidéos ?",
+        a: `Le Pack réseaux sociaux (option à ${SOCIAL_PACK_MONTHLY} € par mois, sans engagement) en comprend 4 par mois, avec la publication et les réponses aux messages.`,
+      },
     ],
   },
   {
@@ -609,9 +622,9 @@ export const offers: Offer[] = [
     price: "89 €",
     setup: "299 €",
     idealFor:
-      "Idéal si vous avez un fort passage ou plusieurs espaces et que vous voulez un suivi complet.",
+      "Idéal si vous avez un fort passage ou plusieurs espaces et que vous voulez un suivi complet et une présence sur les réseaux.",
     installation: [
-      "Création de votre carte et de votre 2e carte",
+      "Création de votre carte",
       "Chevalet plexi gravé à votre logo pour le comptoir",
       "Plaques QR adhésives sur vos tables ou postes (jusqu'à 12)",
       "Grande vitrophanie (40 × 40 cm et plus)",
@@ -627,7 +640,7 @@ export const offers: Offer[] = [
       "relances-et-anniversaires",
       "campagnes",
       "bilan-mensuel",
-      "deuxieme-carte",
+      "video-reseaux",
       "design-saisonnier",
       "visite-trimestrielle",
       "support-prioritaire",

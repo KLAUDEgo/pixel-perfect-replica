@@ -40,6 +40,13 @@ function Confidentialite() {
             e-mail, formule et options choisies.
           </li>
           <li>
+            <b>Pack réseaux sociaux</b> : pour gérer vos comptes, nous accédons aux messages et
+            commentaires que vos clients y laissent. Nous les utilisons uniquement pour y répondre
+            en votre nom, sans les copier ni les réutiliser ailleurs. Les accès que vous nous
+            confiez restent confidentiels et ne servent qu'à cette mission ; ils prennent fin dès
+            que vous les retirez ou que le Pack s'arrête.
+          </li>
+          <li>
             <b>Clients</b> : en plus, les informations nécessaires à la facturation et au
             prélèvement (coordonnées de l'établissement, SIRET, mandat SEPA).
           </li>

@@ -42,6 +42,12 @@ const EXTRA_SITE_DISCOUNT = 20; // % de remise sur l'abonnement d'un établissem
 const ANNUAL_MONTHS_PAID = 10; // paiement annuel : 10 mois payés = 2 mois offerts
 const QUOTE_VALIDITY_DAYS = 30;
 
+/**
+ * PACK RÉSEAUX SOCIAUX — prix mensuel de l'option (en euros, prix net).
+ * Modifiez-le ici : page options, devis, PDF, FAQ et CGV se mettent à jour.
+ */
+export const SOCIAL_PACK_MONTHLY = 199;
+
 /** Le numéro n'est affiché qu'une fois renseigné (pas de « [TÉLÉPHONE] » visible). */
 export const HAS_PHONE = COMPANY.phone.trim() !== "" && !COMPANY.phone.trim().startsWith("[");
 
@@ -106,7 +112,13 @@ export type Option = {
   idealFor: string;
   /** Service dont on réutilise l'illustration et la page détail. */
   service?: string;
+  /** true = option facturée chaque mois (ajoutée à l'abonnement, quantité 1 au plus). */
+  recurring?: boolean;
 };
+
+/** Quantité maximale par option dans un devis (une option mensuelle : 1 au plus). */
+const OPTION_MAX_QTY = 20;
+export const optionMaxQty = (o: Option) => (o.recurring ? 1 : OPTION_MAX_QTY);
 
 export const options: Option[] = [
   {
@@ -207,6 +219,23 @@ export const options: Option[] = [
     service: "formation-equipe",
   },
   {
+    slug: "pack-reseaux-sociaux",
+    name: "Pack réseaux sociaux",
+    price: `${SOCIAL_PACK_MONTHLY} € / mois`,
+    amount: SOCIAL_PACK_MONTHLY,
+    unitLabel: "sans engagement, préavis d'un mois",
+    enClair:
+      "On s'occupe de vos réseaux sociaux : vidéos, publications, réponses aux messages et fiche Google, chaque mois.",
+    includes: [
+      "4 vidéos courtes par mois, tournées sur place et montées",
+      "Publication sur vos comptes Instagram, TikTok et Facebook",
+      "Réponses aux commentaires et messages, du lundi au vendredi",
+      "Votre fiche Google tenue à jour (photos, horaires, publications)",
+    ],
+    idealFor: "Vous voulez être visible sur les réseaux sans y passer vos soirées.",
+    recurring: true,
+  },
+  {
     slug: "etablissement-supplementaire",
     name: "Établissement supplémentaire",
     price: `−${EXTRA_SITE_DISCOUNT} % sur son abonnement`,
@@ -289,6 +318,10 @@ export const faq: FaqGroup[] = [
         q: "Puis-je avoir plusieurs établissements ?",
         a: `Oui, avec −${EXTRA_SITE_DISCOUNT} % sur l'abonnement de chaque établissement supplémentaire.`,
       },
+      {
+        q: "Pouvez-vous gérer nos réseaux sociaux ?",
+        a: `Oui. La formule Premium inclut une vidéo courte par mois. Le Pack réseaux sociaux (${SOCIAL_PACK_MONTHLY} € par mois, sans engagement) s'occupe de tout : vidéos, publication, réponses aux messages et fiche Google.`,
+      },
     ],
   },
   {
@@ -304,11 +337,11 @@ export const faq: FaqGroup[] = [
       },
       {
         q: "Comment se fait le paiement ?",
-        a: `L'installation est réglée à la signature, puis l'abonnement est prélevé chaque mois (SEPA). Vous pouvez aussi choisir le paiement annuel, avec ${12 - ANNUAL_MONTHS_PAID} mois offerts : l'année est alors réglée en une fois, à la signature puis à chaque date anniversaire.`,
+        a: `L'installation est réglée à la signature, puis l'abonnement est prélevé chaque mois (SEPA). Vous pouvez aussi choisir le paiement annuel, avec ${12 - ANNUAL_MONTHS_PAID} mois offerts sur l'abonnement (hors Pack réseaux sociaux, facturé 12 mois) : l'année est alors réglée en une fois, à la signature puis à chaque date anniversaire.`,
       },
       {
         q: "Le devis en ligne m'engage-t-il ?",
-        a: `Non. Le devis est gratuit, sans obligation et valable ${QUOTE_VALIDITY_DAYS} jours. Après l'avoir reçu, nous vous appelons pour en parler. Rien n'est payé en ligne.`,
+        a: `Non. Le devis est gratuit, sans obligation et valable ${QUOTE_VALIDITY_DAYS} jours. Après l'avoir reçu, nous vous recontactons sur WhatsApp pour en parler. Rien n'est payé en ligne.`,
       },
       {
         q: "Les prix peuvent-ils augmenter ? Puis-je changer de formule ?",

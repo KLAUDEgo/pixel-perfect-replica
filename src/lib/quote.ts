@@ -6,6 +6,7 @@ import {
   CONTACT_EMAIL,
   HAS_PHONE,
   euros,
+  optionMaxQty,
   options,
 } from "@/data/content";
 import { offers, type OfferSlug } from "@/data/services";
@@ -32,7 +33,17 @@ export type Customer = {
   message: string;
 };
 
-export type Line = { label: string; qty: number; unit: number; total: number; note?: string };
+export type Line = {
+  label: string;
+  qty: number;
+  unit: number;
+  total: number;
+  note?: string;
+  /** Ligne d'option (ponctuelle ou mensuelle). */
+  option?: boolean;
+  /** Option mensuelle : facturée 12 mois sur 12 en paiement annuel (pas de mois offerts). */
+  recurring?: boolean;
+};
 
 /** Montant en euros, format français avec espaces insécables U+00A0 (compatibles PDF, contrairement à U+202F). */
 export const money = (n: number, alwaysCents = false) => {
@@ -85,22 +96,44 @@ export function computeQuote(q: QuoteState) {
       });
     }
   }
+  const recurringOptions: string[] = [];
   for (const o of options) {
-    const n = q.qty[o.slug] ?? 0;
-    if (n > 0 && o.amount !== null)
+    const n = Math.min(q.qty[o.slug] ?? 0, optionMaxQty(o));
+    if (n <= 0 || o.amount === null) continue;
+    if (o.recurring) {
+      // Option mensuelle : ajoutée à l'abonnement (donc aussi au paiement annuel), pas aux frais de signature.
+      recurringOptions.push(o.name);
+      monthlyLines.push({
+        label: `${o.name} (option mensuelle, ${o.unitLabel})`,
+        qty: n,
+        unit: o.amount,
+        total: n * o.amount,
+        option: true,
+        recurring: true,
+      });
+    } else
       setupLines.push({
         label: o.name.startsWith("Lot") ? o.name : `${o.name} (${o.unitLabel})`,
         qty: n,
         unit: o.amount,
         total: n * o.amount,
+        option: true,
       });
   }
   const setupTotal = setupLines.reduce((s, l) => s + l.total, 0);
   const monthlyTotal = monthlyLines.reduce((s, l) => s + l.total, 0);
-  const annualTotal = monthlyTotal * QUOTE_CONFIG.annualMonthsPaid;
+  // Paiement annuel : mois offerts sur la formule (et les établissements en plus),
+  // mais pas sur les options mensuelles (Pack réseaux sociaux), facturées 12 mois sur 12.
+  const recurringMonthly = monthlyLines.filter((l) => l.recurring).reduce((s, l) => s + l.total, 0);
+  const annualTotal =
+    (monthlyTotal - recurringMonthly) * QUOTE_CONFIG.annualMonthsPaid + recurringMonthly * 12;
+  /** Prix annuel sans aucun mois offert (pour « au lieu de »). */
+  const annualFullPrice = monthlyTotal * 12;
   /** Paiement annuel : installation + options + 1re année, dus à la signature. */
   const annualDueAtSigning = setupTotal + annualTotal;
-  const optionCount = Object.values(q.qty).reduce((s, n) => s + n, 0);
+  const optionCount = [...setupLines, ...monthlyLines]
+    .filter((l) => l.option)
+    .reduce((s, l) => s + l.qty, 0);
   return {
     offer,
     setupLines,
@@ -108,8 +141,11 @@ export function computeQuote(q: QuoteState) {
     setupTotal,
     monthlyTotal,
     annualTotal,
+    annualFullPrice,
     annualDueAtSigning,
     optionCount,
+    /** Noms des options mensuelles retenues (ex. « Pack réseaux sociaux »). */
+    recurringOptions,
   };
 }
 
@@ -121,6 +157,11 @@ export const quoteNumber = () => {
 
 const frDate = (d: Date) =>
   d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" });
+
+/** « 2 mois offerts », précisé quand une option mensuelle (sans mois offerts) est présente. */
+export const annualFreeText = (recurringOptions: string[]) =>
+  `${12 - QUOTE_CONFIG.annualMonthsPaid} mois offerts` +
+  (recurringOptions.length ? ` sur l'abonnement, hors ${recurringOptions.join(", ")}` : "");
 
 /** Texte du devis (e-mail au gérant / repli messagerie). */
 export function quoteText(q: QuoteState, c: Customer, num: string) {
@@ -135,18 +176,22 @@ export function quoteText(q: QuoteState, c: Customer, num: string) {
     `Téléphone : ${c.phone}`,
     `E-mail : ${c.email}`,
     "",
-    annual ? "INSTALLATION ET OPTIONS (une fois)" : "À RÉGLER À LA SIGNATURE (une fois)",
+    annual
+      ? "INSTALLATION ET OPTIONS PONCTUELLES (une fois)"
+      : "À RÉGLER À LA SIGNATURE (une fois : installation et options ponctuelles)",
     ...r.setupLines.map(L),
     `Total : ${money(r.setupTotal)}`,
     "",
-    "ABONNEMENT",
+    r.recurringOptions.length
+      ? `ABONNEMENT (formule + ${r.recurringOptions.join(" + ")})`
+      : "ABONNEMENT",
     ...r.monthlyLines.map(L),
     `Total mensuel : ${money(r.monthlyTotal)} / mois`,
     annual
-      ? `Paiement annuel choisi : ${money(r.annualTotal)} / an (${12 - QUOTE_CONFIG.annualMonthsPaid} mois offerts)`
+      ? `Paiement annuel choisi : ${money(r.annualTotal)} / an (${annualFreeText(r.recurringOptions)})`
       : "Paiement mensuel par prélèvement SEPA",
     annual
-      ? `TOTAL DÛ À LA SIGNATURE (installation + options + 1re année) : ${money(r.annualDueAtSigning)}`
+      ? `TOTAL DÛ À LA SIGNATURE (installation + options ponctuelles + 1re année d'abonnement) : ${money(r.annualDueAtSigning)}`
       : "",
     "",
     "Prix nets — " + QUOTE_CONFIG.vatMention,
@@ -279,7 +324,7 @@ export async function downloadQuotePdf(q: QuoteState, c: Customer, num: string) 
   doc.setFontSize(11);
   doc.text(
     annual
-      ? "1. Installation et options (paiement unique)"
+      ? "1. Installation et options ponctuelles (paiement unique)"
       : "1. À régler à la signature (paiement unique)",
     M,
     y,
@@ -290,7 +335,10 @@ export async function downloadQuotePdf(q: QuoteState, c: Customer, num: string) 
     head,
     body: rows(r.setupLines),
     foot: [
-      footRow(annual ? "Total installation et options" : "Total à la signature", r.setupTotal),
+      footRow(
+        annual ? "Total installation et options ponctuelles" : "Total à la signature",
+        r.setupTotal,
+      ),
     ],
   });
   // @ts-expect-error lastAutoTable est ajouté par le plugin
@@ -298,12 +346,20 @@ export async function downloadQuotePdf(q: QuoteState, c: Customer, num: string) 
   if (y > BOTTOM - 30) y = newPage();
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
-  doc.text("2. Abonnement", M, y);
+  doc.text(
+    r.recurringOptions.length
+      ? `2. Abonnement (formule + ${r.recurringOptions.join(" + ")})`
+      : "2. Abonnement",
+    M,
+    y,
+  );
   const subFoot = annual
     ? [
         footRow("Total mensuel (pour information)", r.monthlyTotal, true),
         footRow(
-          `Paiement annuel (${QUOTE_CONFIG.annualMonthsPaid} mois payés sur 12)`,
+          r.recurringOptions.length
+            ? `Paiement annuel (formule : ${QUOTE_CONFIG.annualMonthsPaid} mois payés sur 12 ; ${r.recurringOptions.join(", ")} : 12 mois)`
+            : `Paiement annuel (${QUOTE_CONFIG.annualMonthsPaid} mois payés sur 12)`,
           r.annualTotal,
         ),
       ]
@@ -320,7 +376,7 @@ export async function downloadQuotePdf(q: QuoteState, c: Customer, num: string) 
       body: [
         [
           {
-            content: "Total dû à la signature (installation + options + 1re année)",
+            content: "Total dû à la signature (installation + options ponctuelles + 1re année)",
             styles: { fontStyle: "bold" as const, fillColor: yellow },
           },
           {
@@ -347,17 +403,22 @@ export async function downloadQuotePdf(q: QuoteState, c: Customer, num: string) 
   }
   const cond = [
     `Prix nets. ${QUOTE_CONFIG.vatMention}.`,
-    "Installation et options réglées à la signature. Abonnement par prélèvement SEPA" +
+    "Installation et options ponctuelles réglées à la signature. Abonnement" +
+      (r.recurringOptions.length ? ` (formule + ${r.recurringOptions.join(" + ")})` : "") +
+      " par prélèvement SEPA" +
       (annual
         ? ", paiement annuel réglé en une fois à la signature puis à chaque date anniversaire."
         : ", chaque mois."),
     annual ? "En paiement annuel, l'année réglée n'est pas remboursée." : "",
     `Installation ${POLICY.installDelay}.`,
     QUOTE_CONFIG.commitment + ".",
+    r.recurringOptions.length
+      ? `${r.recurringOptions.join(", ")} : option mensuelle sans engagement, résiliable à tout moment avec un préavis d'un mois, indépendamment de la formule.`
+      : "",
     "Pénalités de retard et indemnité forfaitaire de 40 € pour frais de recouvrement : voir CGV.",
     "Conditions générales de vente : " + QUOTE_CONFIG.cgv + ".",
     `Devis gratuit, valable ${QUOTE_CONFIG.validityDays} jours. Il ne vous engage pas tant qu'il n'est pas signé.`,
-    "Et ensuite ? Nous vous appelons pour en parler. Aucun paiement avant la signature.",
+    "Et ensuite ? Nous vous recontactons sur WhatsApp pour en parler. Aucun paiement avant la signature.",
   ].filter(Boolean);
   doc.setFontSize(9);
   const wrapped: string[] = doc.splitTextToSize(cond.map((t) => "• " + t).join("\n"), W - 2 * M);
@@ -450,11 +511,11 @@ export async function sendQuote(
     `Devis ${num} — ${c.restaurant} (${c.city})`,
     `${c.name} — ${c.phone} — ${c.email}`,
     `Formule : ${r.offer?.name ?? "-"}`,
-    `À la signature : ${money(q.billing === "annual" ? r.annualDueAtSigning : r.setupTotal)}${q.billing === "annual" ? " (installation + options + 1re année)" : ""}`,
+    `À la signature : ${money(q.billing === "annual" ? r.annualDueAtSigning : r.setupTotal)}${q.billing === "annual" ? " (installation + options ponctuelles + 1re année)" : ""}`,
     `Abonnement : ${money(r.monthlyTotal)} / mois${q.billing === "annual" ? ` (paiement annuel : ${money(r.annualTotal)} / an)` : ""}`,
     `Options : ${
-      r.setupLines
-        .filter((l) => !l.label.startsWith("Installation") && !l.label.startsWith("Offre"))
+      [...r.setupLines, ...r.monthlyLines]
+        .filter((l) => l.option)
         .map((l) => `${l.qty} x ${l.label}`)
         .join(" ; ") || "aucune"
     }`,

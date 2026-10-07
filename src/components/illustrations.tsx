@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { BubbleIcon, HeartIcon, PlayIcon, ShareIcon } from "@/components/previews/reseaux";
 
 /* Maquettes CSS dans la DA — aucune photo, aucun cartoon. */
 
@@ -289,11 +290,71 @@ export function ServiceIllustration({ slug }: { slug: string }) {
           </div>
         </Frame>
       );
-    case "deuxieme-carte":
+    case "video-reseaux":
       return (
         <Frame>
-          <WalletCard variant="dark" />
-          <WalletCard variant="yellow" title="étudiant" reward="Votre 6e menu offert" stamps={3} />
+          <Phone>
+            <div className="relative h-[364px] overflow-hidden rounded-xl bg-gradient-to-b from-[#3a2a12] via-[#1c1408] to-ink">
+              <div className="label absolute left-3 top-3 text-[0.6rem] opacity-80">
+                Reels · 0:20
+              </div>
+              {/* burger stylisé, au centre de la vidéo */}
+              <div className="absolute left-[44%] top-[34%] w-24 -translate-x-1/2 -translate-y-1/2">
+                <div className="h-10 rounded-t-full bg-primary" />
+                <div className="mt-1 h-2.5 rounded-full bg-[#7a3d17]" />
+                <div className="mt-1 h-3 rounded-b-xl bg-primary" />
+              </div>
+              <span className="absolute left-[44%] top-[34%] flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-ink/60 text-paper">
+                <PlayIcon className="h-6 w-6" />
+              </span>
+              <div className="absolute bottom-24 right-2 flex flex-col items-center gap-3 text-paper">
+                {(
+                  [
+                    [HeartIcon, "1,2 k", "text-primary"],
+                    [BubbleIcon, "86", ""],
+                    [ShareIcon, "40", ""],
+                  ] as const
+                ).map(([Icon, n, c]) => (
+                  <div key={n} className="flex flex-col items-center">
+                    <Icon className={`h-5 w-5 ${c}`} />
+                    <div className="label text-[0.55rem]">{n}</div>
+                  </div>
+                ))}
+              </div>
+              <HeartIcon className="anim-float absolute bottom-[250px] right-3 h-4 w-4 text-primary" />
+              <HeartIcon
+                className="anim-float absolute bottom-[276px] right-6 h-3 w-3 text-primary/70"
+                style={{ animationDelay: "1.2s" }}
+              />
+              <div className="absolute inset-x-3 bottom-6">
+                <div className="title text-lg leading-tight">smash club</div>
+                <div className="text-xs opacity-80">
+                  Le smash en préparation, du feu à l'assiette.
+                </div>
+                <div className="mt-3 h-1 rounded-full bg-paper/25">
+                  <div
+                    className="anim-progress h-1 rounded-full bg-primary"
+                    style={{ width: "40%" }}
+                  />
+                </div>
+              </div>
+            </div>
+          </Phone>
+          <div className="panel-paper fold-r w-[240px] p-5">
+            <div className="label mb-1">Vidéo du mois</div>
+            <div className="title mb-3 text-2xl">20&nbsp;secondes</div>
+            {[
+              "Sujet choisi ensemble",
+              "Tournée sur place",
+              "Montée par nous",
+              "Prête à publier",
+            ].map((t) => (
+              <div key={t} className="flex items-center gap-2 py-1 text-sm">
+                <span className="bg-ink px-1 text-xs text-paper">✓</span>
+                {t}
+              </div>
+            ))}
+          </div>
         </Frame>
       );
     case "design-saisonnier":

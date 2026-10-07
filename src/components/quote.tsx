@@ -1,11 +1,16 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { options } from "@/data/content";
+import { optionMaxQty, options } from "@/data/content";
 import { offers, type OfferSlug } from "@/data/services";
 import { emptyQuote, type Billing, type QuoteState } from "@/lib/quote";
 
 const KEY = "megalopole-devis";
 const MAX_QTY = 20;
+/** Quantité maximale d'une option (1 pour une option mensuelle). */
+const maxFor = (slug: string) => {
+  const o = options.find((x) => x.slug === slug);
+  return o ? optionMaxQty(o) : MAX_QTY;
+};
 const MAX_SITES = 10;
 
 const clamp = (n: unknown, max: number) => {
@@ -20,7 +25,7 @@ function sanitize(raw: unknown): QuoteState {
   const qty: Record<string, number> = {};
   for (const o of options) {
     if (o.amount === null) continue;
-    const n = clamp(r.qty?.[o.slug], MAX_QTY);
+    const n = clamp(r.qty?.[o.slug], optionMaxQty(o));
     if (n > 0) qty[o.slug] = n;
   }
   return {
@@ -81,11 +86,12 @@ export function QuoteProvider({ children }: { children: ReactNode }) {
     quote,
     loaded,
     setOffer: (offer) => setQuote((q) => ({ ...q, offer })),
-    setQty: (slug, n) => setQuote((q) => ({ ...q, qty: { ...q.qty, [slug]: clamp(n, MAX_QTY) } })),
+    setQty: (slug, n) =>
+      setQuote((q) => ({ ...q, qty: { ...q.qty, [slug]: clamp(n, maxFor(slug)) } })),
     addOne: (slug) =>
       setQuote((q) => ({
         ...q,
-        qty: { ...q.qty, [slug]: clamp((q.qty[slug] ?? 0) + 1, MAX_QTY) },
+        qty: { ...q.qty, [slug]: clamp((q.qty[slug] ?? 0) + 1, maxFor(slug)) },
       })),
     setExtraSites: (n) => setQuote((q) => ({ ...q, extraSites: clamp(n, MAX_SITES) })),
     setBilling: (billing) => setQuote((q) => ({ ...q, billing })),
@@ -150,23 +156,25 @@ export function ChooseOfferButton({
   );
 }
 
-/** "Ajouter au devis" pour une option. */
+/** "Ajouter au devis" pour une option (« Ajouter / Retirer » pour une option mensuelle). */
 export function AddOptionButton({ slug }: { slug: string }) {
-  const { quote, addOne, loaded } = useQuote();
+  const { quote, addOne, setQty, loaded } = useQuote();
   const n = quote.qty[slug] ?? 0;
+  const single = maxFor(slug) === 1;
+  const added = loaded && single && n > 0;
   return (
     <div className="mt-6 flex flex-wrap items-center gap-4">
       <button
         type="button"
-        onClick={() => addOne(slug)}
-        className="bg-primary px-5 py-3 font-bold text-primary-foreground transition-transform hover:-translate-y-0.5"
+        onClick={() => (added ? setQty(slug, 0) : addOne(slug))}
+        className={`px-5 py-3 font-bold transition-transform hover:-translate-y-0.5 ${added ? "border-2 border-primary text-primary" : "bg-primary text-primary-foreground"}`}
       >
-        + Ajouter au devis
+        {added ? "Retirer du devis" : "+ Ajouter au devis"}
       </button>
       <span aria-live="polite">
         {loaded && n > 0 && (
           <Link to="/devis" className="label link-y inline-flex min-h-11 items-center text-primary">
-            {n} dans votre devis → voir le devis
+            {single ? "Dans votre devis" : `${n} dans votre devis`} → voir le devis
           </Link>
         )}
       </span>

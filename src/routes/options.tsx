@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { LAUNCH_OFFER, POLICY, QUOTE_CONFIG, options } from "@/data/content";
+import { LAUNCH_OFFER, POLICY, QUOTE_CONFIG, SOCIAL_PACK_MONTHLY, options } from "@/data/content";
 import { offers } from "@/data/services";
 import { CtaButton, Crumbs, Footer, Reveal, SetupPrice, SiteHeader } from "@/components/site";
 import { ServiceIllustration } from "@/components/illustrations";
@@ -10,6 +10,7 @@ import { PresentoirPreview } from "@/components/previews/presentoir";
 import { VitrophaniePreview } from "@/components/previews/vitrophanie";
 import { FlyersPreview } from "@/components/previews/flyers";
 import { DesignPreview } from "@/components/previews/design";
+import { ReseauxPreview } from "@/components/previews/reseaux";
 
 /** Aperçu interactif par option (à la place de l'illustration générique). */
 const PREVIEWS: Record<string, () => ReactNode> = {
@@ -18,6 +19,7 @@ const PREVIEWS: Record<string, () => ReactNode> = {
   vitrophanie: () => <VitrophaniePreview />,
   flyers: () => <FlyersPreview />,
   "nouveau-design": () => <DesignPreview />,
+  "pack-reseaux-sociaux": () => <ReseauxPreview />,
 };
 
 /** "sous 7 jours après la commande" -> "sous 7 jours". */
@@ -31,7 +33,7 @@ export const Route = createFileRoute("/options")({
       {
         name: "description",
         content:
-          "QR de table, présentoirs, vitrophanie, flyers, nouveau design, formation : toutes les options pour aller plus loin, avec leur prix.",
+          "QR de table, présentoirs, vitrophanie, flyers, nouveau design, formation, Pack réseaux sociaux : toutes les options pour aller plus loin, avec leur prix.",
       },
       { property: "og:title", content: "Options et installation — mégalopole" },
       { property: "og:type", content: "website" },
@@ -47,22 +49,22 @@ function LaunchOffer() {
       <div className="bg-primary p-8 text-primary-foreground md:p-12">
         <p className="label">Offre de lancement</p>
         <h2 className="title mt-3 text-4xl md:text-6xl">
-          -{LAUNCH_OFFER.discountPercent} % sur l'installation pour les {LAUNCH_OFFER.spots}{" "}
+          −{LAUNCH_OFFER.discountPercent} % sur l'installation pour les {LAUNCH_OFFER.spots}{" "}
           premiers commerces.
         </h2>
         <div className="mt-8 grid gap-8 md:grid-cols-2">
           <div className="space-y-3 text-lg">
             <p>
-              <b>Ce que vous gagnez :</b> {LAUNCH_OFFER.discountPercent} % de remise sur les frais
+              <b>Ce que vous gagnez :</b> {LAUNCH_OFFER.discountPercent} % de remise sur les frais
               d'installation de votre formule.
             </p>
             <p>
-              <b>En échange :</b> {LAUNCH_OFFER.counterpart} (votre devanture ou votre comptoir avec
+              <b>En échange :</b> {LAUNCH_OFFER.counterpart} (votre devanture ou votre comptoir avec
               la carte).
             </p>
             <p className="text-base opacity-80">
               Offre réservée aux {LAUNCH_OFFER.spots} premiers commerces signés. La remise
-              s'applique aux frais d'installation de la formule ; les options restent au tarif
+              s'applique aux frais d'installation de la formule ; les options restent au tarif
               normal.
             </p>
           </div>
@@ -93,7 +95,13 @@ function OptionCards() {
             className="grid scroll-mt-28 grid-cols-[minmax(0,1fr)] items-center gap-10 md:grid-cols-2"
           >
             <div className={i % 2 ? "md:order-2" : ""}>
-              <p className="label mb-3 text-primary">Option</p>
+              <p className="label mb-3 text-primary">
+                {o.recurring
+                  ? "Option mensuelle"
+                  : o.amount === null
+                    ? "Option"
+                    : "Option ponctuelle"}
+              </p>
               <h2 className="title text-4xl md:text-5xl">{o.name}</h2>
               <p className="mt-5 flex flex-wrap items-baseline gap-3">
                 <span className="title text-5xl text-primary">{o.price}</span>
@@ -113,7 +121,7 @@ function OptionCards() {
                 ))}
               </ul>
               <p className="mt-6 border-l-4 border-primary pl-4 text-muted-foreground">
-                <b className="text-foreground">Idéal si :</b> {o.idealFor}
+                <b className="text-foreground">Idéal si :</b> {o.idealFor}
               </p>
               {o.service && (
                 <Link
@@ -149,7 +157,7 @@ function OptionCards() {
                     >
                       <p className="title text-lg leading-tight sm:text-2xl">{v}</p>
                       <p className="label mt-2 text-[0.65rem] sm:text-xs">
-                        {k === 0 ? "plein tarif" : `-${QUOTE_CONFIG.extraSiteDiscountPercent} %`}
+                        {k === 0 ? "plein tarif" : `−${QUOTE_CONFIG.extraSiteDiscountPercent} %`}
                       </p>
                     </div>
                   ))}
@@ -171,7 +179,7 @@ function QuoteCta() {
           <p className="label">Devis en ligne</p>
           <h2 className="title mt-3 text-4xl md:text-5xl">composez votre devis, à votre rythme.</h2>
           <p className="mt-3 max-w-xl text-black/60">
-            Formule, options, paiement : vous recevez votre devis en PDF tout de suite. Gratuit et
+            Formule, options, paiement : vous recevez votre devis en PDF tout de suite. Gratuit et
             sans obligation.
           </p>
         </div>
@@ -189,18 +197,18 @@ function QuoteCta() {
 function OptionsFaq() {
   const items = [
     {
-      q: "Puis-je ajouter une option plus tard ?",
-      a: `Oui, à tout moment : prévenez-nous. On l'installe ${OPTION_DELAY_SHORT}.`,
+      q: "Puis-je ajouter une option plus tard ?",
+      a: `Oui, à tout moment : prévenez-nous. On l'installe ${OPTION_DELAY_SHORT}.`,
     },
     {
-      q: "Les options sont-elles payées une seule fois ?",
-      a: "Oui, ce sont des achats ponctuels, sans abonnement.",
+      q: "Les options sont-elles payées une seule fois ?",
+      a: `Oui, sauf le Pack réseaux sociaux. Les autres options sont des achats ponctuels, réglés une fois. Le Pack réseaux sociaux est mensuel (${SOCIAL_PACK_MONTHLY} € par mois), sans engagement : vous l'arrêtez quand vous voulez, avec un préavis d'un mois.`,
     },
     {
-      q: "Qui installe le matériel ?",
+      q: "Qui installe le matériel ?",
       a: "Nous : plaques, présentoirs et vitrophanie sont posés sur place.",
     },
-    { q: "Quel délai pour recevoir une option ?", a: `Elle est installée ${POLICY.optionDelay}.` },
+    { q: "Quel délai pour recevoir une option ?", a: `Elle est installée ${POLICY.optionDelay}.` },
   ];
   return (
     <section className="mx-auto max-w-3xl px-5 pb-20">
@@ -226,15 +234,17 @@ function OptionsPage() {
       <SiteHeader />
       <Crumbs items={[{ label: "Options" }]} />
       <section className="mx-auto max-w-6xl px-5 py-16">
-        <p className="label mb-6 text-primary">Options · payées une seule fois</p>
+        <p className="label mb-6 text-primary">
+          Options ponctuelles · sauf le Pack réseaux sociaux (mensuel)
+        </p>
         <h1 className="title text-5xl md:text-8xl">
           allez plus <span className="mark">loin.</span>
         </h1>
         <p className="mt-8 max-w-2xl text-xl text-muted-foreground">
           Plus votre carte est visible, plus vos clients s'inscrivent. Ajoutez des supports, des
-          flyers ou un nouveau design quand vous voulez.
+          flyers ou un nouveau design quand vous voulez, ou confiez-nous vos réseaux sociaux.
         </p>
-        <p className="mt-4 text-sm text-muted-foreground">TVA non applicable : prix final.</p>
+        <p className="mt-4 text-sm text-muted-foreground">TVA non applicable : prix final.</p>
         <div className="mt-10 flex flex-wrap gap-3">
           {options.map((o) => (
             <Link
