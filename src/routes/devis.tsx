@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, type FormEvent, type InputHTMLAttributes } from "react";
+import { useEffect, useRef, useState, type FormEvent, type InputHTMLAttributes } from "react";
 import { CONTACT_EMAIL, LAUNCH_OFFER, QUOTE_CONFIG, options } from "@/data/content";
 import { offers } from "@/data/services";
+import { WHATSAPP_DEFAULT_MESSAGE, whatsappLink } from "@/lib/whatsapp";
 import { Crumbs, Footer, SetupPrice, SiteHeader } from "@/components/site";
 import { Stepper, useQuote } from "@/components/quote";
 import {
@@ -69,23 +70,66 @@ function Lines({ lines }: { lines: Line[] }) {
   );
 }
 
+type FieldKey = "name" | "restaurant" | "address" | "city" | "phone" | "email";
+type Errors = Partial<Record<FieldKey, string>>;
+
+/** Ordre d'affichage des champs (pour placer le focus sur le premier en erreur). */
+const FIELD_ORDER: FieldKey[] = ["name", "restaurant", "address", "city", "phone", "email"];
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+/** Validation en français, qui remplace les bulles natives du navigateur. */
+function validate(c: Customer): Errors {
+  const e: Errors = {};
+  if (!c.name.trim()) e.name = "Indiquez votre nom.";
+  if (!c.restaurant.trim()) e.restaurant = "Indiquez le nom de votre commerce.";
+  if (!c.city.trim()) e.city = "Indiquez votre ville.";
+  const digits = c.phone.replace(/\D/g, "");
+  if (!c.phone.trim()) e.phone = "Indiquez un numéro de téléphone pour qu'on vous rappelle.";
+  else if (!/^[+\d\s.()-]+$/.test(c.phone.trim()) || digits.length < 9 || digits.length > 15)
+    e.phone = "Ce numéro semble incomplet. Exemple\u00a0:\u00a006\u00a012\u00a034\u00a056\u00a078.";
+  if (!c.email.trim()) e.email = "Indiquez votre adresse e-mail.";
+  else if (!EMAIL_RE.test(c.email.trim()))
+    e.email = "Cette adresse e-mail semble incorrecte. Exemple\u00a0:\u00a0nom@exemple.fr.";
+  return e;
+}
+
 function Field({
+  id,
   label,
   required,
+  error,
   ...props
-}: { label: string; required?: boolean } & InputHTMLAttributes<HTMLInputElement>) {
+}: {
+  id: FieldKey;
+  label: string;
+  required?: boolean;
+  error?: string | undefined;
+} & Omit<InputHTMLAttributes<HTMLInputElement>, "id">) {
+  const inputId = `devis-${id}`;
+  const errId = `${inputId}-err`;
   return (
-    <label className="block">
-      <span className="label mb-2 block text-muted-foreground">
+    <div>
+      <label htmlFor={inputId} className="label mb-2 block text-muted-foreground">
         {label}
-        {required && " *"}
-      </span>
+        {required ? " *" : " (facultatif)"}
+      </label>
       <input
-        required={required}
+        id={inputId}
+        name={id}
+        aria-required={required || undefined}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? errId : undefined}
         {...props}
-        className="w-full border-2 border-paper/20 bg-transparent px-4 py-3 focus:border-primary"
+        className={`w-full scroll-mt-32 border-2 bg-transparent px-4 py-3 focus:border-primary ${error ? "border-red-500" : "border-paper/20"}`}
       />
-    </label>
+      {error && (
+        <p id={errId} className="mt-2 text-sm font-semibold text-red-400">
+          <span aria-hidden>! </span>
+          {error}
+        </p>
+      )}
+    </div>
   );
 }
 
@@ -188,7 +232,7 @@ function Done({
             <button
               type="button"
               onClick={() => navigator.clipboard?.writeText(text).then(() => setCopied(true))}
-              className="label border-2 border-paper/30 px-3 py-2 hover:border-paper"
+              className="label inline-flex min-h-11 items-center border-2 border-paper/30 px-3 py-2 hover:border-paper"
             >
               {copied ? "Copié ✓" : "Copier"}
             </button>
@@ -210,12 +254,50 @@ function DevisPage() {
   const [pdfOk, setPdfOk] = useState(false);
   const [sent, setSent] = useState<Sent>(null);
   const [snapshot, setSnapshot] = useState<QuoteState | null>(null);
+  const [errors, setErrors] = useState<Errors>({});
+  const formRef = useRef<HTMLFormElement>(null);
   const r = computeQuote(quote);
   const priced = options.filter((o) => o.amount !== null);
-  const set = (k: keyof Customer) => (e: { target: { value: string } }) =>
-    setC((x) => ({ ...x, [k]: e.target.value }));
+  const set = (k: keyof Customer) => (e: { target: { value: string } }) => {
+    const value = e.target.value;
+    setC((x) => ({ ...x, [k]: value }));
+    // Une erreur affichée disparaît dès que le champ devient valide.
+    if (errors[k as FieldKey])
+      setErrors((prev) => ({ ...prev, [k]: validate({ ...c, [k]: value })[k as FieldKey] }));
+  };
+  const fieldProps = (k: FieldKey) => ({
+    id: k,
+    value: c[k],
+    onChange: set(k),
+    error: errors[k],
+  });
+  const errorCount = Object.values(errors).filter(Boolean).length;
   const hasContent =
     quote.offer || r.optionCount > 0 || quote.extraSites > 0 || quote.billing === "annual";
+
+  // Barre récap collante (mobile/tablette) : visible si une formule est choisie
+  // et que le récapitulatif n'est pas déjà à l'écran.
+  const recapRef = useRef<HTMLDivElement>(null);
+  const [recapInView, setRecapInView] = useState(true);
+  useEffect(() => {
+    const el = recapRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(([e]) => setRecapInView(!!e?.isIntersecting), {
+      threshold: 0,
+    });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [status, loaded]);
+  const showBar = loaded && !!quote.offer && status !== "done";
+  const barVisible = showBar && !recapInView;
+  const hasFloat = !!whatsappLink(WHATSAPP_DEFAULT_MESSAGE);
+  const goToRecap = () => {
+    const el = recapRef.current;
+    if (!el) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    el.scrollIntoView({ block: "start", behavior: reduce ? "auto" : "smooth" });
+    el.focus({ preventScroll: true });
+  };
 
   const [sending, setSending] = useState(false);
   async function trySend(q: QuoteState, n: string, pdf = pdfOk) {
@@ -232,6 +314,17 @@ function DevisPage() {
   async function submit(e: FormEvent) {
     e.preventDefault();
     if (!quote.offer || status === "busy") return;
+    const errs = validate(c);
+    setErrors(errs);
+    const first = FIELD_ORDER.find((k) => errs[k]);
+    if (first) {
+      const el = formRef.current?.querySelector<HTMLInputElement>(`#devis-${first}`);
+      if (el) {
+        el.focus({ preventScroll: true });
+        el.scrollIntoView({ block: "center", behavior: "smooth" });
+      }
+      return;
+    }
     const n = num || quoteNumber();
     const snap = quote;
     setNum(n);
@@ -274,7 +367,7 @@ function DevisPage() {
               setPdfOk(false);
               window.scrollTo({ top: 0 });
             }}
-            className="label underline opacity-60 hover:opacity-100"
+            className="label inline-flex min-h-11 items-center underline opacity-60 hover:opacity-100"
           >
             Faire un nouveau devis
           </button>
@@ -285,7 +378,7 @@ function DevisPage() {
   }
 
   return (
-    <div>
+    <div className={showBar ? "pb-24 lg:pb-0" : undefined}>
       <SiteHeader />
       <Crumbs items={[{ label: "Mon devis" }]} />
       <section className="mx-auto max-w-6xl px-5 pb-10 pt-12">
@@ -300,7 +393,9 @@ function DevisPage() {
       </section>
 
       <form
+        ref={formRef}
         onSubmit={submit}
+        noValidate
         className="mx-auto grid max-w-6xl gap-12 px-5 pb-24 lg:grid-cols-[1.4fr_1fr]"
       >
         <div className="min-w-0 space-y-16">
@@ -322,7 +417,7 @@ function DevisPage() {
                     </span>
                   )}
                   <span className="title block text-3xl">{o.name}</span>
-                  <span className="mt-2 block font-bold">{o.price} HT / mois</span>
+                  <span className="mt-2 block font-bold">{o.price} / mois</span>
                   <span className="mt-1 block text-sm opacity-80">
                     Installation : <SetupPrice setup={o.setup} />
                   </span>
@@ -330,7 +425,7 @@ function DevisPage() {
               ))}
             </div>
             <p className="mt-3 text-sm text-muted-foreground">
-              Vous hésitez ?{" "}
+              Vous hésitez ?{" "}
               <Link to="/" hash="offres" className="link-y text-foreground">
                 Comparez les formules
               </Link>
@@ -352,7 +447,7 @@ function DevisPage() {
                       {o.name}
                     </Link>
                     <p className="label text-muted-foreground">
-                      {o.price} HT · {o.unitLabel}
+                      {o.price} · {o.unitLabel}
                     </p>
                   </div>
                   <Stepper
@@ -372,8 +467,8 @@ function DevisPage() {
                     Établissements supplémentaires
                   </Link>
                   <p className="label text-muted-foreground">
-                    -{QUOTE_CONFIG.extraSiteDiscountPercent} % sur leur abonnement · installation à
-                    définir ensemble
+                    −{QUOTE_CONFIG.extraSiteDiscountPercent} % sur leur abonnement · installation :
+                    devis séparé
                   </p>
                 </div>
                 <Stepper
@@ -418,54 +513,39 @@ function DevisPage() {
           <div>
             <StepTitle n="04">vos coordonnées</StepTitle>
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              <Field label="Votre nom" required autoComplete="name" {...fieldProps("name")} />
               <Field
-                label="Votre nom"
-                required
-                autoComplete="name"
-                value={c.name}
-                onChange={set("name")}
-              />
-              <Field
-                label="Nom du restaurant"
+                label="Nom du commerce"
                 required
                 autoComplete="organization"
-                value={c.restaurant}
-                onChange={set("restaurant")}
+                {...fieldProps("restaurant")}
               />
               <Field
-                label="Adresse du restaurant"
-                required
+                label="Adresse du commerce"
                 autoComplete="street-address"
-                value={c.address}
-                onChange={set("address")}
+                {...fieldProps("address")}
               />
-              <Field
-                label="Ville"
-                required
-                autoComplete="address-level2"
-                value={c.city}
-                onChange={set("city")}
-              />
+              <Field label="Ville" required autoComplete="address-level2" {...fieldProps("city")} />
               <Field
                 label="Téléphone"
                 required
                 type="tel"
+                inputMode="tel"
                 autoComplete="tel"
-                value={c.phone}
-                onChange={set("phone")}
+                {...fieldProps("phone")}
               />
               <Field
-                label="Email"
+                label="E-mail"
                 required
                 type="email"
+                inputMode="email"
                 autoComplete="email"
-                value={c.email}
-                onChange={set("email")}
+                {...fieldProps("email")}
               />
             </div>
             <label className="mt-4 block">
               <span className="label mb-2 block text-muted-foreground">
-                Une question, une précision ? (facultatif)
+                Une question, une précision ? (facultatif)
               </span>
               <textarea
                 value={c.message}
@@ -483,14 +563,19 @@ function DevisPage() {
 
         {/* Récapitulatif */}
         <aside className="min-w-0">
-          <div className="panel-paper p-7 lg:sticky lg:top-28">
+          <div
+            ref={recapRef}
+            id="recap"
+            tabIndex={-1}
+            className="panel-paper scroll-mt-28 p-7 outline-none lg:sticky lg:top-28"
+          >
             <div className="flex items-center justify-between">
               <p className="label">Récapitulatif</p>
               {loaded && hasContent && (
                 <button
                   type="button"
                   onClick={reset}
-                  className="label underline opacity-60 hover:opacity-100"
+                  className="label -my-3 inline-flex min-h-11 items-center px-1 underline opacity-60 hover:opacity-100"
                 >
                   Vider
                 </button>
@@ -514,7 +599,7 @@ function DevisPage() {
                 <Lines lines={r.monthlyLines} />
                 {quote.extraSites > 0 && (
                   <p className="mt-2 text-xs opacity-70">
-                    Installation des établissements supplémentaires : à définir ensemble.
+                    Installation des établissements supplémentaires : devis séparé.
                   </p>
                 )}
                 <div className="mt-3 flex justify-between border-t border-black/15 pt-3">
@@ -530,12 +615,13 @@ function DevisPage() {
                     au lieu de {money(r.monthlyTotal * 12)}
                   </p>
                 )}
-                <p className="label mt-4 opacity-60">Montants HT</p>
+                <p className="label mt-4 opacity-60">TVA non applicable : prix final</p>
                 {LAUNCH_OFFER.enabled && (
                   <p className="mt-4 bg-primary p-3 text-sm font-semibold">
-                    Offre de lancement : -{LAUNCH_OFFER.discountPercent} % sur l'installation de la
-                    formule, réservée aux {LAUNCH_OFFER.spots} premiers restaurants (sous réserve de
-                    places disponibles), en échange d'{LAUNCH_OFFER.counterpart}.
+                    Offre de lancement : −{LAUNCH_OFFER.discountPercent} % sur l'installation de la
+                    formule, réservée aux {LAUNCH_OFFER.spots} premiers commerces (remise garantie
+                    pour ce devis s'il est signé pendant sa durée de validité), en échange d'
+                    {LAUNCH_OFFER.counterpart}.
                   </p>
                 )}
               </>
@@ -548,15 +634,70 @@ function DevisPage() {
             >
               {status === "busy" ? "Préparation…" : "Recevoir mon devis (PDF) →"}
             </button>
+            {errorCount > 0 && (
+              <p role="alert" className="mt-3 text-center text-sm font-bold text-red-700">
+                {errorCount === 1
+                  ? "Un champ est à compléter ou à corriger (étape 04)."
+                  : `${errorCount} champs sont à compléter ou à corriger (étape 04).`}
+              </p>
+            )}
             <p id="devis-hint" className="mt-3 text-center text-xs opacity-60">
               {quote.offer
                 ? "Gratuit et sans obligation · aucun paiement en ligne"
                 : "Choisissez d'abord une formule (étape 01)."}
             </p>
+            <p className="mt-2 text-center text-xs opacity-60">
+              Voir nos{" "}
+              <Link to="/cgv" className="underline">
+                CGV
+              </Link>{" "}
+              et notre{" "}
+              <Link to="/confidentialite" className="underline">
+                politique de confidentialité
+              </Link>
+              .
+            </p>
           </div>
         </aside>
       </form>
       <Footer />
+      {barVisible && (
+        <div
+          role="region"
+          aria-label="Résumé de votre devis"
+          data-testid="devis-bar"
+          className="panel-paper fixed inset-x-0 bottom-0 z-20 border-t-4 border-primary shadow-[0_-8px_24px_rgba(0,0,0,0.35)] lg:hidden"
+          style={{
+            paddingBottom: "env(safe-area-inset-bottom, 0px)",
+            paddingRight: hasFloat ? "calc(72px + env(safe-area-inset-right, 0px))" : undefined,
+          }}
+        >
+          <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2.5">
+            <div className="min-w-0 leading-tight">
+              <p className="text-sm">
+                <span className="opacity-70">À la signature</span>{" "}
+                <b className="whitespace-nowrap">{money(r.setupTotal)}</b>
+              </p>
+              <p className="text-sm">
+                <b className="whitespace-nowrap">
+                  {money(quote.billing === "annual" ? r.annualTotal : r.monthlyTotal)}
+                </b>{" "}
+                <span className="opacity-70">
+                  {quote.billing === "annual" ? "par an" : "par mois"}
+                </span>
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={goToRecap}
+              aria-controls="recap"
+              className="inline-flex min-h-11 shrink-0 items-center bg-ink px-4 text-sm font-bold text-paper"
+            >
+              Voir le récap ↓
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
