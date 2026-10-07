@@ -1,8 +1,10 @@
 import { createFileRoute, notFound, Link } from "@tanstack/react-router";
 import { getOffer } from "@/data/services";
+import { POLICY } from "@/data/content";
 import { ChooseOfferButton } from "@/components/quote";
 import {
   CtaButton,
+  NotFoundPage,
   Crumbs,
   Footer,
   Reveal,
@@ -19,13 +21,15 @@ export const Route = createFileRoute("/offres/$slug")({
   },
   head: ({ loaderData }) => {
     if (!loaderData)
-      return { meta: [{ title: "Offre introuvable" }, { name: "robots", content: "noindex" }] };
+      return {
+        meta: [{ title: "Page introuvable — mégalopole" }, { name: "robots", content: "noindex" }],
+      };
     const o = loaderData.offer;
-    const t = `Offre ${o.name} — mégalopole`;
+    const t = `Formule ${o.name} — mégalopole`;
     return {
       meta: [
         { title: t },
-        { name: "description", content: `${o.idealFor} ${o.price} HT/mois.` },
+        { name: "description", content: `${o.idealFor} ${o.price} par mois.` },
         { property: "og:title", content: t },
         { property: "og:description", content: o.idealFor },
         { property: "og:type", content: "website" },
@@ -35,12 +39,10 @@ export const Route = createFileRoute("/offres/$slug")({
   },
   component: OfferPage,
   notFoundComponent: () => (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-4">
-      <h1 className="title text-5xl">offre introuvable</h1>
-      <Link to="/" className="label link-y">
-        ← Retour aux offres
-      </Link>
-    </div>
+    <NotFoundPage
+      title="formule"
+      text="Cette formule n'existe pas. Retrouvez toutes nos formules sur la page d'accueil."
+    />
   ),
   errorComponent: () => <div className="p-10">Cette page n'a pas pu se charger.</div>,
 });
@@ -50,32 +52,38 @@ function OfferPage() {
   return (
     <div>
       <SiteHeader />
-      <Crumbs items={[{ label: "Offres", to: "/" }, { label: o.name }]} />
+      <Crumbs items={[{ label: "Formules", to: "/" }, { label: o.name }]} />
 
-      <section className="mx-auto grid max-w-6xl gap-10 px-5 py-16 md:grid-cols-[1.4fr_1fr] md:items-end">
-        <div>
-          <p className="label mb-6 text-primary">Offre — {o.tagline}</p>
-          <h1 className="title text-7xl md:text-9xl">{o.name.toLowerCase()}</h1>
+      <section className="mx-auto grid max-w-6xl gap-10 px-5 py-16 lg:grid-cols-[1.4fr_1fr] lg:items-end">
+        <div className="min-w-0">
+          <p className="label mb-6 text-primary">Formule — {o.tagline}</p>
+          <h1 className="title break-words text-6xl sm:text-7xl md:text-8xl xl:text-9xl">
+            {o.name.toLowerCase()}
+          </h1>
           <p className="mt-8 max-w-xl text-xl">
             <span className="mark mr-2">Idéal si</span>
             {o.idealFor.replace(/^Idéal si /, "")}
           </p>
         </div>
-        <div className="panel-paper fold-r p-8">
+        <div className="panel-paper fold-r min-w-0 p-8 md:max-w-md lg:max-w-none">
           <p className="label">Abonnement</p>
           <p className="title text-6xl">{o.price}</p>
-          <p className="label">HT / mois</p>
+          <p className="label">par mois</p>
+          <p className="mt-2 text-sm font-semibold">
+            Sans engagement · préavis {POLICY.noticeMonths} mois
+          </p>
           <div className="my-5 h-px bg-ink/20" />
           <p className="label">Installation</p>
-          <p className="title text-3xl">
-            <SetupPrice setup={o.setup} /> <span className="label">une fois</span>
+          <p className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <SetupPrice setup={o.setup} className="title whitespace-nowrap text-2xl sm:text-3xl" />
+            <span className="label whitespace-nowrap">une fois</span>
           </p>
-          <p className="label mt-4 opacity-60">Prix HT</p>
+          <p className="label mt-4 opacity-60">TVA non applicable : prix final</p>
           <ChooseOfferButton slug={o.slug} className="mt-6 w-full" />
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-6xl gap-10 px-5 pb-20 md:grid-cols-2">
+      <section className="mx-auto grid max-w-6xl gap-10 px-5 pb-20 md:grid-cols-2 [&>*]:min-w-0">
         <Reveal>
           <h2 className="title mb-6 text-4xl">
             tous les <span className="mark">services</span>
@@ -107,9 +115,9 @@ function OfferPage() {
         <Link
           to="/"
           hash="comparatif"
-          className="border-2 border-primary px-7 py-4 text-lg font-bold text-primary hover:bg-primary hover:text-primary-foreground"
+          className="border-2 border-primary px-7 py-4 text-center text-lg font-bold text-primary hover:bg-primary hover:text-primary-foreground"
         >
-          Comparer avec les autres offres
+          Comparer avec les autres formules
         </Link>
         <CtaButton />
       </section>

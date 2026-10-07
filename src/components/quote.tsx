@@ -114,7 +114,7 @@ export function QuoteCartButton() {
     <Link
       to="/devis"
       aria-label={`Mon devis${loaded && count ? `, ${count} élément${count > 1 ? "s" : ""}` : ""}`}
-      className="label inline-flex items-center gap-2 border-2 border-paper/40 px-3 py-2 transition-colors hover:border-primary hover:text-primary"
+      className="label inline-flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap border-2 border-paper/40 px-3 py-2 transition-colors hover:border-primary hover:text-primary"
     >
       Mon devis
       {loaded && count > 0 && (
@@ -165,7 +165,7 @@ export function AddOptionButton({ slug }: { slug: string }) {
       </button>
       <span aria-live="polite">
         {loaded && n > 0 && (
-          <Link to="/devis" className="label link-y text-primary">
+          <Link to="/devis" className="label link-y inline-flex min-h-11 items-center text-primary">
             {n} dans votre devis → voir le devis
           </Link>
         )}
@@ -186,24 +186,24 @@ export function Stepper({
   max?: number;
 }) {
   return (
-    <div className="flex items-center gap-3" role="group" aria-label={label}>
+    <div className="flex shrink-0 items-center gap-2" role="group" aria-label={label}>
       <button
         type="button"
         onClick={() => onChange(value - 1)}
         disabled={value <= 0}
-        className="h-10 w-10 border-2 border-paper/30 text-xl font-bold hover:border-paper disabled:opacity-30"
+        className="h-11 w-11 shrink-0 border-2 border-paper/50 text-xl font-bold hover:border-paper disabled:cursor-not-allowed disabled:border-dashed disabled:border-paper/40 disabled:text-paper/60 disabled:hover:border-paper/40"
         aria-label={`Retirer : ${label}`}
       >
         −
       </button>
-      <span className="title w-6 text-center text-2xl" aria-live="polite">
+      <span className="title w-7 text-center text-2xl" aria-live="polite">
         {value}
       </span>
       <button
         type="button"
         onClick={() => onChange(value + 1)}
         disabled={value >= max}
-        className="h-10 w-10 bg-primary text-xl font-bold text-primary-foreground disabled:opacity-30"
+        className="h-11 w-11 shrink-0 bg-primary text-xl font-bold text-primary-foreground disabled:cursor-not-allowed disabled:bg-paper/20 disabled:text-paper/70"
         aria-label={`Ajouter : ${label}`}
       >
         +

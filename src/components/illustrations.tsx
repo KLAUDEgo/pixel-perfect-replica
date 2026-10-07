@@ -22,7 +22,7 @@ function Phone({ children, className = "" }: { children: ReactNode; className?: 
 function WalletCard({
   variant = "dark",
   title = "smash club",
-  reward = "10e menu offert",
+  reward = "Votre 10e menu offert",
   stamps = 7,
 }: {
   variant?: "dark" | "paper" | "yellow";
@@ -39,7 +39,7 @@ function WalletCard({
   const dot = variant === "dark" ? "bg-primary" : "bg-ink";
   return (
     <div className={`fold-r w-[190px] p-4 ${v}`}>
-      <div className="label mb-3 opacity-70">Carte fidélité</div>
+      <div className="label mb-3 opacity-70">Carte de fidélité</div>
       <div className="title text-2xl">{title}</div>
       <div className="mt-4 grid grid-cols-5 gap-1.5">
         {Array.from({ length: 10 }).map((_, i) => (
@@ -146,7 +146,7 @@ export function ServiceIllustration({ slug }: { slug: string }) {
                 ))}
               </span>
             </div>
-            <p className="label mt-3">0 € par client</p>
+            <p className="label mt-3">0&nbsp;€ par client</p>
           </div>
           <Phone>
             <div className="label mb-3 text-center">Scanner</div>
@@ -166,8 +166,8 @@ export function ServiceIllustration({ slug }: { slug: string }) {
             <div className="grid grid-cols-3 gap-2 text-center">
               {[
                 ["412", "inscrits"],
-                ["1 280", "passages"],
-                ["96", "récomp."],
+                ["1 286", "passages"],
+                ["87", "récomp."],
               ].map(([n, l]) => (
                 <div key={l}>
                   <div className="title text-xl text-primary">{n}</div>
@@ -210,7 +210,7 @@ export function ServiceIllustration({ slug }: { slug: string }) {
           <Phone>
             <div className="title mt-6 text-center text-5xl">18:42</div>
             <div className="label mb-8 text-center opacity-60">mardi 6 octobre</div>
-            <Notif text="Plus que 2 menus avant votre menu offert !" />
+            <Notif text={"Plus que 2 menus avant votre menu offert\u00a0!"} />
           </Phone>
         </Frame>
       );
@@ -221,7 +221,7 @@ export function ServiceIllustration({ slug }: { slug: string }) {
             {[
               ["J0", "Dernière visite"],
               ["J+30", "Toujours absent"],
-              ["Notification", "« Vos frites sont offertes »"],
+              ["Notification", "«\u00a0Vos frites sont offertes\u00a0»"],
               ["Retour", "+1 tampon"],
             ].map(([k, t], i) => (
               <div key={k} className="flex flex-1 items-center gap-3 md:flex-col md:text-center">
@@ -244,18 +244,18 @@ export function ServiceIllustration({ slug }: { slug: string }) {
         <Frame>
           <Phone>
             <div className="mt-10 space-y-3">
-              <Notif text="Tampon double aujourd'hui de 15 h à 18 h !" />
+              <Notif text={"Tampon double aujourd'hui de 15\u00a0h à 18\u00a0h\u00a0!"} />
               <div className="opacity-60">
-                <Notif text="Soir de match : menu partage à 19 €" />
+                <Notif text={"Soir de match\u00a0: menu partage à 19\u00a0€"} />
               </div>
             </div>
           </Phone>
           <div className="grid gap-2">
             {[
-              "À qui ? Tous les clients",
-              "Quel message ? Tampon double",
-              "Quand ? Mardi 14 h 30",
-              "Quel résultat ? +38 passages",
+              "À qui\u00a0? Tous les clients",
+              "Quel message\u00a0? Tampon double",
+              "Quand\u00a0? Mardi 14\u00a0h\u00a030",
+              "Quel résultat\u00a0? +38 passages",
             ].map((t) => (
               <div key={t} className="fold-r panel-paper px-4 py-2 text-sm font-semibold">
                 {t}
@@ -284,7 +284,7 @@ export function ServiceIllustration({ slug }: { slug: string }) {
               ))}
             </div>
             <div className="mt-5 bg-primary p-3 text-sm">
-              <b>Conseil :</b> lancer une campagne « soir de match ».
+              <b>Conseil&nbsp;:</b> lancer une campagne «&nbsp;soir de match&nbsp;».
             </div>
           </div>
         </Frame>
@@ -293,7 +293,7 @@ export function ServiceIllustration({ slug }: { slug: string }) {
       return (
         <Frame>
           <WalletCard variant="dark" />
-          <WalletCard variant="yellow" title="étudiant" reward="6e menu offert" stamps={3} />
+          <WalletCard variant="yellow" title="étudiant" reward="Votre 6e menu offert" stamps={3} />
         </Frame>
       );
     case "design-saisonnier":
@@ -398,7 +398,8 @@ export function ServiceIllustration({ slug }: { slug: string }) {
           <div className="panel-paper fold-r w-[240px] rotate-2 p-5">
             <div className="label mb-2">Mémo comptoir</div>
             <p className="font-serif text-lg italic leading-snug">
-              « Vous avez notre carte fidélité ? Scannez ici, votre 10e menu est offert. »
+              «&nbsp;Vous avez notre carte de fidélité&nbsp;? Scannez ici, votre 10e menu est
+              offert.&nbsp;»
             </p>
           </div>
         </Frame>
@@ -453,10 +454,10 @@ export function ServiceIllustration({ slug }: { slug: string }) {
             <div className="grid grid-cols-[2fr_1fr] gap-2 bg-paper p-2">
               <div className="relative flex h-56 items-center justify-center bg-ink/90">
                 <div className="fold-r bg-primary p-4 text-center text-primary-foreground">
-                  <div className="title text-3xl">ton 10e menu offert</div>
+                  <div className="title text-3xl">Votre 10e menu offert</div>
                   <div className="mt-2 flex items-center justify-center gap-2">
                     <QR size={44} />
-                    <span className="label">Scanne ici</span>
+                    <span className="label">Scannez ici</span>
                   </div>
                 </div>
               </div>
@@ -470,7 +471,7 @@ export function ServiceIllustration({ slug }: { slug: string }) {
         <Frame>
           <div className="relative h-72 w-56 bg-kraft">
             <div className="absolute -top-10 left-1/2 w-40 -translate-x-1/2 rotate-[-6deg] bg-primary p-4 text-primary-foreground anim-float">
-              <div className="title text-2xl">ton 10e menu offert</div>
+              <div className="title text-2xl">Votre 10e menu offert</div>
               <div className="mt-3">
                 <QR size={48} />
               </div>

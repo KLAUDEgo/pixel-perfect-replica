@@ -10,7 +10,10 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CgvRouteImport } from './routes/cgv'
+import { Route as ConfidentialiteRouteImport } from './routes/confidentialite'
 import { Route as DevisRouteImport } from './routes/devis'
+import { Route as MentionsLegalesRouteImport } from './routes/mentions-legales'
 import { Route as OptionsRouteImport } from './routes/options'
 import { Route as OffresSlugRouteImport } from './routes/offres.$slug'
 import { Route as ServicesSlugRouteImport } from './routes/services.$slug'
@@ -20,9 +23,24 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CgvRoute = CgvRouteImport.update({
+  id: '/cgv',
+  path: '/cgv',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConfidentialiteRoute = ConfidentialiteRouteImport.update({
+  id: '/confidentialite',
+  path: '/confidentialite',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DevisRoute = DevisRouteImport.update({
   id: '/devis',
   path: '/devis',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MentionsLegalesRoute = MentionsLegalesRouteImport.update({
+  id: '/mentions-legales',
+  path: '/mentions-legales',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OptionsRoute = OptionsRouteImport.update({
@@ -43,14 +61,20 @@ const ServicesSlugRoute = ServicesSlugRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/cgv': typeof CgvRoute
+  '/confidentialite': typeof ConfidentialiteRoute
   '/devis': typeof DevisRoute
+  '/mentions-legales': typeof MentionsLegalesRoute
   '/options': typeof OptionsRoute
   '/offres/$slug': typeof OffresSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/cgv': typeof CgvRoute
+  '/confidentialite': typeof ConfidentialiteRoute
   '/devis': typeof DevisRoute
+  '/mentions-legales': typeof MentionsLegalesRoute
   '/options': typeof OptionsRoute
   '/offres/$slug': typeof OffresSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
@@ -58,20 +82,42 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/cgv': typeof CgvRoute
+  '/confidentialite': typeof ConfidentialiteRoute
   '/devis': typeof DevisRoute
+  '/mentions-legales': typeof MentionsLegalesRoute
   '/options': typeof OptionsRoute
   '/offres/$slug': typeof OffresSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/devis' | '/options' | '/offres/$slug' | '/services/$slug'
+  fullPaths:
+    | '/'
+    | '/cgv'
+    | '/confidentialite'
+    | '/devis'
+    | '/mentions-legales'
+    | '/options'
+    | '/offres/$slug'
+    | '/services/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/devis' | '/options' | '/offres/$slug' | '/services/$slug'
+  to:
+    | '/'
+    | '/cgv'
+    | '/confidentialite'
+    | '/devis'
+    | '/mentions-legales'
+    | '/options'
+    | '/offres/$slug'
+    | '/services/$slug'
   id:
     | '__root__'
     | '/'
+    | '/cgv'
+    | '/confidentialite'
     | '/devis'
+    | '/mentions-legales'
     | '/options'
     | '/offres/$slug'
     | '/services/$slug'
@@ -79,7 +125,10 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CgvRoute: typeof CgvRoute
+  ConfidentialiteRoute: typeof ConfidentialiteRoute
   DevisRoute: typeof DevisRoute
+  MentionsLegalesRoute: typeof MentionsLegalesRoute
   OptionsRoute: typeof OptionsRoute
   OffresSlugRoute: typeof OffresSlugRoute
   ServicesSlugRoute: typeof ServicesSlugRoute
@@ -94,11 +143,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cgv': {
+      id: '/cgv'
+      path: '/cgv'
+      fullPath: '/cgv'
+      preLoaderRoute: typeof CgvRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/confidentialite': {
+      id: '/confidentialite'
+      path: '/confidentialite'
+      fullPath: '/confidentialite'
+      preLoaderRoute: typeof ConfidentialiteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/devis': {
       id: '/devis'
       path: '/devis'
       fullPath: '/devis'
       preLoaderRoute: typeof DevisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mentions-legales': {
+      id: '/mentions-legales'
+      path: '/mentions-legales'
+      fullPath: '/mentions-legales'
+      preLoaderRoute: typeof MentionsLegalesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/options': {
@@ -127,7 +197,10 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CgvRoute: CgvRoute,
+  ConfidentialiteRoute: ConfidentialiteRoute,
   DevisRoute: DevisRoute,
+  MentionsLegalesRoute: MentionsLegalesRoute,
   OptionsRoute: OptionsRoute,
   OffresSlugRoute: OffresSlugRoute,
   ServicesSlugRoute: ServicesSlugRoute,

@@ -2,6 +2,31 @@ import { createFileRoute, notFound, Link } from "@tanstack/react-router";
 import { getService } from "@/data/services";
 import { Crumbs, Footer, IncludedIn, Reveal, SiteHeader } from "@/components/site";
 import { ServiceIllustration } from "@/components/illustrations";
+import { PlaquePreview } from "@/components/plaque";
+import { PresentoirPreview } from "@/components/previews/presentoir";
+import { VitrophaniePreview } from "@/components/previews/vitrophanie";
+import { FlyersPreview } from "@/components/previews/flyers";
+import { DesignPreview } from "@/components/previews/design";
+
+/** Section « à quoi ça ressemble » : aperçu interactif du support, par service. */
+const LOOKS: Record<string, { intro: string; Preview: typeof PresentoirPreview }> = {
+  "presentoir-comptoir": {
+    intro: "Le présentoir en plexi, avec l'affiche à vos couleurs. Essayez les styles ici.",
+    Preview: PresentoirPreview,
+  },
+  vitrophanie: {
+    intro: "L'autocollant sur votre vitrine, à l'échelle. Changez la taille et les couleurs.",
+    Preview: VitrophaniePreview,
+  },
+  flyers: {
+    intro: "Le flyer recto-verso, à vos couleurs. Retournez-le pour voir le verso.",
+    Preview: FlyersPreview,
+  },
+  "design-saisonnier": {
+    intro: "Votre carte, déclinée selon la saison. Essayez les thèmes ici.",
+    Preview: DesignPreview,
+  },
+};
 
 export const Route = createFileRoute("/services/$slug")({
   loader: ({ params }) => {
@@ -52,11 +77,13 @@ function ServicePage() {
         </p>
       </section>
 
-      <section className="mx-auto max-w-6xl px-5">
-        <Reveal>
-          <ServiceIllustration slug={s.slug} />
-        </Reveal>
-      </section>
+      {!LOOKS[s.slug] && s.slug !== "qr-de-table" && (
+        <section className="mx-auto max-w-6xl px-5">
+          <Reveal>
+            <ServiceIllustration slug={s.slug} />
+          </Reveal>
+        </section>
+      )}
 
       <section className="mx-auto max-w-6xl px-5 py-20">
         <h2 className="title mb-10 text-4xl">
@@ -75,6 +102,37 @@ function ServicePage() {
           ))}
         </ol>
       </section>
+
+      {s.slug === "qr-de-table" && (
+        <section className="mx-auto max-w-6xl px-5 pb-20">
+          <h2 className="title mb-3 text-4xl">
+            choisissez votre <span className="mark">finition</span>
+          </h2>
+          <p className="mb-8 max-w-2xl text-lg text-muted-foreground">
+            Plaque en acrylique bicouche : le QR et votre phrase sont gravés au laser. Essayez les
+            couleurs ici.
+          </p>
+          <Reveal>
+            <PlaquePreview layout="split" />
+          </Reveal>
+        </section>
+      )}
+
+      {LOOKS[s.slug] &&
+        (() => {
+          const { intro, Preview } = LOOKS[s.slug]!;
+          return (
+            <section className="mx-auto max-w-6xl px-5 pb-20">
+              <h2 className="title mb-3 text-4xl">
+                à quoi ça <span className="mark">ressemble</span>
+              </h2>
+              <p className="mb-8 max-w-2xl text-lg text-muted-foreground">{intro}</p>
+              <Reveal>
+                <Preview layout="split" />
+              </Reveal>
+            </section>
+          );
+        })()}
 
       {s.sections?.map((sec) => (
         <section key={sec.title} className="mx-auto max-w-6xl px-5 pb-20">
@@ -96,9 +154,10 @@ function ServicePage() {
 
       <section className="mx-auto max-w-6xl px-5 pb-20">
         <Reveal>
-          <div className="panel-paper fold relative p-10">
-            <span className="label absolute right-6 top-6 bg-primary px-2 py-1">Exemple</span>
-            <p className="label mb-3">Exemple — restaurant fictif</p>
+          <div className="panel-paper fold p-7 md:p-10">
+            <p className="label mb-4 inline-block bg-primary px-2 py-1">
+              Exemple — commerce fictif
+            </p>
             <p className="max-w-3xl font-serif text-2xl italic leading-snug md:text-3xl">
               {s.example}
             </p>

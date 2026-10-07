@@ -7,7 +7,6 @@ import {
   FaqSection,
   Hero,
   HowItWorks,
-  MerchantSide,
   OffersSection,
   OptionsSection,
   Problem,
@@ -19,19 +18,20 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "mégalopole — La carte de fidélité digitale pour les restaurants" },
+      { title: "mégalopole — Carte de fidélité digitale pour restaurants et commerces" },
       {
         name: "description",
         content:
-          "La carte de fidélité digitale qui fait revenir vos clients : dans leur téléphone, sans appli, sans compte. Fast-foods et restaurants de Grasse à Nice.",
+          "La carte de fidélité digitale qui fait revenir vos clients\u00a0: dans leur téléphone, sans appli, sans compte. Restaurants, cafés, boulangeries, salons et commerces de Grasse à Nice, installée sur place.",
       },
       {
         property: "og:title",
-        content: "mégalopole — La carte de fidélité digitale pour les restaurants",
+        content: "mégalopole — Carte de fidélité digitale pour restaurants et commerces",
       },
       {
         property: "og:description",
-        content: "Faites revenir vos clients avec une carte de fidélité dans leur téléphone.",
+        content:
+          "Faites revenir vos clients avec une carte de fidélité dans leur téléphone, sans appli ni compte. Restaurants, cafés et commerces de Grasse à Nice.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -42,11 +42,11 @@ export const Route = createFileRoute("/")({
 
 function Comparatif() {
   return (
-    <section id="comparatif" className="mx-auto max-w-6xl scroll-mt-24 px-5 py-20">
+    <section id="comparatif" className="mx-auto max-w-6xl scroll-mt-24 px-5 pb-12 md:pb-16">
       <details className="group border-2 border-paper/20">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-6 p-6">
           <span className="title text-3xl md:text-4xl">
-            comparer les offres <span className="mark">en détail</span>
+            comparer les formules <span className="mark">en détail</span>
           </span>
           <span className="text-3xl text-primary transition-transform group-open:rotate-45">+</span>
         </summary>
@@ -64,7 +64,9 @@ function Comparatif() {
                     >
                       {o.name}
                     </Link>
-                    <div className="label mt-1 text-muted-foreground">{o.price} / mois</div>
+                    <div className="label mt-1 text-muted-foreground">
+                      {o.price.replace(" €", "\u00a0€")} / mois
+                    </div>
                   </th>
                 ))}
               </tr>
@@ -94,7 +96,7 @@ function Comparatif() {
           </table>
         </div>
       </details>
-      <div className="mt-12 flex justify-center">
+      <div className="mt-10 flex justify-center">
         <CtaButton />
       </div>
     </section>
@@ -109,7 +111,6 @@ function Index() {
       <Problem />
       <Stats />
       <HowItWorks />
-      <MerchantSide />
       <DashboardPreview />
       <WeHandleIt />
       <OffersSection />

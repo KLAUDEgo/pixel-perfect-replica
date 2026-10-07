@@ -1,9 +1,28 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { LAUNCH_OFFER, QUOTE_CONFIG, options } from "@/data/content";
+import type { ReactNode } from "react";
+import { LAUNCH_OFFER, POLICY, QUOTE_CONFIG, options } from "@/data/content";
 import { offers } from "@/data/services";
 import { CtaButton, Crumbs, Footer, Reveal, SetupPrice, SiteHeader } from "@/components/site";
 import { ServiceIllustration } from "@/components/illustrations";
 import { AddOptionButton } from "@/components/quote";
+import { PlaquePreview } from "@/components/plaque";
+import { PresentoirPreview } from "@/components/previews/presentoir";
+import { VitrophaniePreview } from "@/components/previews/vitrophanie";
+import { FlyersPreview } from "@/components/previews/flyers";
+import { DesignPreview } from "@/components/previews/design";
+
+/** Aperçu interactif par option (à la place de l'illustration générique). */
+const PREVIEWS: Record<string, () => ReactNode> = {
+  "plaques-qr-table": () => <PlaquePreview />,
+  "presentoirs-qr": () => <PresentoirPreview />,
+  vitrophanie: () => <VitrophaniePreview />,
+  flyers: () => <FlyersPreview />,
+  "nouveau-design": () => <DesignPreview />,
+};
+
+/** "sous 7 jours après la commande" -> "sous 7 jours". */
+const OPTION_DELAY_SHORT =
+  /sous\s+\d+\s*jours?/.exec(POLICY.optionDelay)?.[0] ?? POLICY.optionDelay;
 
 export const Route = createFileRoute("/options")({
   head: () => ({
@@ -29,7 +48,7 @@ function LaunchOffer() {
         <p className="label">Offre de lancement</p>
         <h2 className="title mt-3 text-4xl md:text-6xl">
           -{LAUNCH_OFFER.discountPercent} % sur l'installation pour les {LAUNCH_OFFER.spots}{" "}
-          premiers restaurants.
+          premiers commerces.
         </h2>
         <div className="mt-8 grid gap-8 md:grid-cols-2">
           <div className="space-y-3 text-lg">
@@ -42,7 +61,7 @@ function LaunchOffer() {
               la carte).
             </p>
             <p className="text-base opacity-80">
-              Offre réservée aux {LAUNCH_OFFER.spots} premiers restaurants signés. La remise
+              Offre réservée aux {LAUNCH_OFFER.spots} premiers commerces signés. La remise
               s'applique aux frais d'installation de la formule ; les options restent au tarif
               normal.
             </p>
@@ -74,11 +93,11 @@ function OptionCards() {
             className="grid scroll-mt-28 grid-cols-[minmax(0,1fr)] items-center gap-10 md:grid-cols-2"
           >
             <div className={i % 2 ? "md:order-2" : ""}>
-              <p className="label mb-3 text-primary">Option · {o.unitLabel}</p>
+              <p className="label mb-3 text-primary">Option</p>
               <h2 className="title text-4xl md:text-5xl">{o.name}</h2>
               <p className="mt-5 flex flex-wrap items-baseline gap-3">
                 <span className="title text-5xl text-primary">{o.price}</span>
-                <span className="label text-muted-foreground">HT · {o.unitLabel}</span>
+                <span className="label text-muted-foreground">{o.unitLabel}</span>
               </p>
               <p className="mt-6 text-lg">
                 <span className="mark mr-2">En clair</span>
@@ -117,17 +136,19 @@ function OptionCards() {
               )}
             </div>
             <div className={`min-w-0 overflow-hidden ${i % 2 ? "md:order-1" : ""}`}>
-              {o.service ? (
+              {PREVIEWS[o.slug] ? (
+                PREVIEWS[o.slug]!()
+              ) : o.service ? (
                 <ServiceIllustration slug={o.service} />
               ) : (
-                <div className="flex min-h-[320px] items-center justify-center gap-4 border bg-card p-10">
+                <div className="grid min-h-[260px] grid-cols-3 content-center gap-2 border bg-card p-4 sm:min-h-[320px] sm:gap-4 sm:p-10">
                   {["Cannes", "Antibes", "Nice"].map((v, k) => (
                     <div
                       key={v}
-                      className={`p-5 text-center ${k === 0 ? "panel-paper" : "border-2 border-primary"}`}
+                      className={`flex min-w-0 flex-col justify-center px-1 py-4 text-center sm:p-5 ${k === 0 ? "panel-paper" : "border-2 border-primary"}`}
                     >
-                      <p className="title text-2xl">{v}</p>
-                      <p className="label mt-2">
+                      <p className="title text-lg leading-tight sm:text-2xl">{v}</p>
+                      <p className="label mt-2 text-[0.65rem] sm:text-xs">
                         {k === 0 ? "plein tarif" : `-${QUOTE_CONFIG.extraSiteDiscountPercent} %`}
                       </p>
                     </div>
@@ -169,7 +190,7 @@ function OptionsFaq() {
   const items = [
     {
       q: "Puis-je ajouter une option plus tard ?",
-      a: "Oui, à tout moment : prévenez-nous et on l'ajoute lors d'un prochain passage.",
+      a: `Oui, à tout moment : prévenez-nous. On l'installe ${OPTION_DELAY_SHORT}.`,
     },
     {
       q: "Les options sont-elles payées une seule fois ?",
@@ -179,7 +200,7 @@ function OptionsFaq() {
       q: "Qui installe le matériel ?",
       a: "Nous : plaques, présentoirs et vitrophanie sont posés sur place.",
     },
-    { q: "Quel délai pour recevoir une option ?", a: "[DÉLAI À COMPLÉTER]" },
+    { q: "Quel délai pour recevoir une option ?", a: `Elle est installée ${POLICY.optionDelay}.` },
   ];
   return (
     <section className="mx-auto max-w-3xl px-5 pb-20">
@@ -205,9 +226,7 @@ function OptionsPage() {
       <SiteHeader />
       <Crumbs items={[{ label: "Options" }]} />
       <section className="mx-auto max-w-6xl px-5 py-16">
-        <p className="label mb-6 text-primary">
-          Options · prix HT, payées une seule fois (sauf établissement supplémentaire)
-        </p>
+        <p className="label mb-6 text-primary">Options · payées une seule fois</p>
         <h1 className="title text-5xl md:text-8xl">
           allez plus <span className="mark">loin.</span>
         </h1>
@@ -215,6 +234,7 @@ function OptionsPage() {
           Plus votre carte est visible, plus vos clients s'inscrivent. Ajoutez des supports, des
           flyers ou un nouveau design quand vous voulez.
         </p>
+        <p className="mt-4 text-sm text-muted-foreground">TVA non applicable : prix final.</p>
         <div className="mt-10 flex flex-wrap gap-3">
           {options.map((o) => (
             <Link
