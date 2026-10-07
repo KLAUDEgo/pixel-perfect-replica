@@ -176,6 +176,18 @@
 @utility anim-ping {
   animation: ping-y 1.6s ease-out infinite;
 }
+@keyframes progress {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+/* Barre de lecture d'une vidéo (largeur fixe si mouvements réduits) */
+@utility anim-progress {
+  animation: progress 8s linear infinite;
+}
 
 /* Défilement horizontal sans barre visible (carrousel des vidéos) */
 @utility no-scrollbar {

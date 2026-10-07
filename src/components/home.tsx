@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { CountrySelect } from "@/components/country-select";
 import {
   useEffect,
   useLayoutEffect,
@@ -14,6 +15,7 @@ import {
   LAUNCH_OFFER,
   POLICY,
   QUOTE_CONFIG,
+  SOCIAL_PACK_MONTHLY,
   euros,
   faq,
   fmtEuros,
@@ -25,6 +27,7 @@ import { Logo, Reveal, ServiceLink, SetupPrice } from "@/components/site";
 import { ChooseOfferButton } from "@/components/quote";
 import { WhatsAppIcon } from "@/components/whatsapp";
 import { contactWhatsAppMessage, whatsappLink } from "@/lib/whatsapp";
+import { DEFAULT_COUNTRY, formatPhone, phoneError } from "@/lib/phone";
 
 /* ---------- petits éléments réutilisables ---------- */
 
@@ -1007,9 +1010,14 @@ export function OffersSection() {
   );
 }
 
-/** Option la moins chère, ex. "39 €". */
+/** Option ponctuelle la moins chère, ex. "39 €". */
 const MIN_OPTION_PRICE = fmtEuros(
-  Math.min(...options.map((o) => o.amount ?? Infinity).filter((n) => n > 0 && n < Infinity)),
+  Math.min(
+    ...options
+      .filter((o) => !o.recurring)
+      .map((o) => o.amount ?? Infinity)
+      .filter((n) => n > 0 && n < Infinity),
+  ),
 );
 
 export function OptionsSection() {
@@ -1018,7 +1026,10 @@ export function OptionsSection() {
       <div className="flex flex-col gap-4 border-y border-paper/15 py-8 md:flex-row md:items-center md:justify-between md:gap-8">
         <p className="text-lg">
           <b>Options à la carte</b>&nbsp;: plaques et présentoirs QR, vitrophanie, flyers, nouveau
-          design… <span className="whitespace-nowrap">dès {nb(MIN_OPTION_PRICE)}.</span>
+          design… <span className="whitespace-nowrap">dès {nb(MIN_OPTION_PRICE)}</span>, payées une
+          fois. Et le <b>Pack réseaux sociaux</b>,{" "}
+          <span className="whitespace-nowrap">{nb(fmtEuros(SOCIAL_PACK_MONTHLY))} / mois</span> sans
+          engagement.
         </p>
         <Link
           to="/options"
@@ -1166,7 +1177,7 @@ function FaqItemView({ f, open }: { f: FaqItem; open?: boolean }) {
     <details className="group border-b py-5" open={open}>
       <summary className="flex cursor-pointer list-none justify-between gap-6 text-lg font-bold">
         {nb(stripPlaceholders(f.q))}
-        <span className="text-2xl leading-none text-primary transition-transform group-open:rotate-45">
+        <span className="shrink-0 self-start text-2xl leading-none text-primary transition-transform group-open:rotate-45">
           +
         </span>
       </summary>
@@ -1247,9 +1258,20 @@ export function ContactSection() {
   const [sent, setSent] = useState(false);
   const [waUrl, setWaUrl] = useState<string | null>(null);
   const viaWhatsApp = whatsappLink() !== null;
+  const [country, setCountry] = useState(DEFAULT_COUNTRY);
+  const [phone, setPhone] = useState("");
+  const [phoneErr, setPhoneErr] = useState<string | null>(null);
+  const phoneRef = useRef<HTMLInputElement>(null);
   function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const err = phoneError(country, phone, !viaWhatsApp);
+    setPhoneErr(err);
+    if (err) {
+      phoneRef.current?.focus();
+      return;
+    }
     const d = new FormData(e.currentTarget);
+    d.set("Téléphone", formatPhone(country, phone));
     const url = whatsappLink(contactWhatsAppMessage(d));
     if (url) {
       const w = window.open(url, "_blank");
@@ -1329,17 +1351,46 @@ export function ContactSection() {
               aria-label="Ville"
               autoComplete="address-level2"
               placeholder="Ville"
-              className={field}
+              className={`${field} sm:col-span-2`}
             />
-            <input
-              name="Téléphone"
-              aria-label="Téléphone"
-              autoComplete="tel"
-              required={!viaWhatsApp}
-              type="tel"
-              placeholder={viaWhatsApp ? "Téléphone (facultatif)" : "Téléphone"}
-              className={field}
-            />
+            <div className="sm:col-span-2">
+              <div className="flex gap-2">
+                <CountrySelect
+                  value={country}
+                  invalid={!!phoneErr}
+                  onChange={(code) => {
+                    setCountry(code);
+                    if (phoneErr) setPhoneErr(phoneError(code, phone, !viaWhatsApp));
+                  }}
+                />
+                <input
+                  ref={phoneRef}
+                  name="Téléphone"
+                  aria-label={viaWhatsApp ? "Téléphone (facultatif)" : "Téléphone"}
+                  aria-invalid={phoneErr ? true : undefined}
+                  aria-describedby={phoneErr ? "contact-phone-err" : undefined}
+                  autoComplete="tel-national"
+                  type="tel"
+                  inputMode="tel"
+                  value={phone}
+                  onChange={(e) => {
+                    setPhone(e.target.value);
+                    if (phoneErr) setPhoneErr(phoneError(country, e.target.value, !viaWhatsApp));
+                  }}
+                  onBlur={() =>
+                    phone.trim() && setPhoneErr(phoneError(country, phone, !viaWhatsApp))
+                  }
+                  placeholder={viaWhatsApp ? "Téléphone (facultatif)" : "Téléphone"}
+                  className={`${field} min-w-0 flex-1 ${phoneErr ? "!border-red-500" : ""}`}
+                />
+              </div>
+              {phoneErr && (
+                <p id="contact-phone-err" className="mt-2 text-sm font-semibold text-red-400">
+                  <span aria-hidden>! </span>
+                  {phoneErr}
+                </p>
+              )}
+            </div>
           </div>
           <textarea
             name="Message"

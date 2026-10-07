@@ -1,5 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { COMPANY, HAS_PHONE, LAUNCH_OFFER, POLICY, QUOTE_CONFIG } from "@/data/content";
+import {
+  COMPANY,
+  HAS_PHONE,
+  LAUNCH_OFFER,
+  POLICY,
+  QUOTE_CONFIG,
+  SOCIAL_PACK_MONTHLY,
+} from "@/data/content";
 import { LegalPage, LegalSection } from "@/components/legal";
 
 export const Route = createFileRoute("/cgv")({
@@ -31,8 +38,8 @@ function Cgv() {
         <p>
           La mise en place et le fonctionnement d'un programme de fidélité digital (carte de
           fidélité dans le téléphone de vos clients, tableau de bord, supports en magasin), sous
-          forme d'un abonnement (formules Essentiel, Pro ou Premium) et d'options ponctuelles,
-          telles que décrites sur le site et dans le devis.
+          forme d'un abonnement (formules Essentiel, Pro ou Premium) et d'options, ponctuelles ou
+          mensuelles (Pack réseaux sociaux), telles que décrites sur le site et dans le devis.
         </p>
       </LegalSection>
       <LegalSection title="3. Devis et commande">
@@ -74,13 +81,18 @@ function Cgv() {
       </LegalSection>
       <LegalSection title="5. Paiement">
         <ul>
-          <li>Frais d'installation et options : payables à la signature.</li>
+          <li>Frais d'installation et options ponctuelles : payables à la signature.</li>
+          <li>
+            Pack réseaux sociaux ({SOCIAL_PACK_MONTHLY} € par mois) : facturé avec l'abonnement,
+            chaque mois ou dans le paiement annuel. Il ne bénéficie pas des mois offerts : en
+            paiement annuel, ses 12 mois sont facturés.
+          </li>
           <li>Abonnement mensuel : prélevé chaque mois, d'avance, par prélèvement SEPA.</li>
           <li>
-            Abonnement annuel : {QUOTE_CONFIG.annualMonthsPaid} mois payés au lieu de 12, réglés en
-            une fois à la signature puis à chaque date anniversaire. L'année réglée n'est pas
-            remboursée en cas de résiliation en cours d'année ; la carte de fidélité reste active
-            jusqu'au terme de l'année payée.
+            Abonnement annuel : {QUOTE_CONFIG.annualMonthsPaid} mois payés au lieu de 12 (hors Pack
+            réseaux sociaux), réglés en une fois à la signature puis à chaque date anniversaire.
+            L'année réglée n'est pas remboursée en cas de résiliation en cours d'année ; la carte de
+            fidélité reste active jusqu'au terme de l'année payée.
           </li>
         </ul>
         <p>Aucun escompte n'est accordé en cas de paiement anticipé.</p>
@@ -108,6 +120,13 @@ function Cgv() {
         <p>
           Vous pouvez changer de formule à tout moment : le changement s'applique à partir du mois
           suivant.
+        </p>
+        <p>
+          <b>Pack réseaux sociaux</b> : vous nous donnez les accès nécessaires à vos comptes
+          (réseaux sociaux, fiche Google). Vous restez propriétaire de vos comptes et de vos
+          contenus, et vous pouvez nous retirer ces accès à tout moment. Le Pack est sans
+          engagement : il se résilie à tout moment, comme l'abonnement, avec un préavis de
+          {POLICY.noticeMonths} mois (en paiement annuel, voir l'article 5).
         </p>
       </LegalSection>
       <LegalSection title="8. Matériel">

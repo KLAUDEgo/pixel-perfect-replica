@@ -1,11 +1,22 @@
+import { DEFAULT_COUNTRY, formatPhone, getCountry, phoneError } from "@/lib/phone";
+import { CountrySelect } from "@/components/country-select";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type FormEvent, type InputHTMLAttributes } from "react";
-import { CONTACT_EMAIL, LAUNCH_OFFER, QUOTE_CONFIG, options } from "@/data/content";
+import {
+  COMPANY,
+  CONTACT_EMAIL,
+  LAUNCH_OFFER,
+  QUOTE_CONFIG,
+  optionMaxQty,
+  options,
+} from "@/data/content";
+import { WhatsAppIcon } from "@/components/whatsapp";
 import { offers } from "@/data/services";
 import { WHATSAPP_DEFAULT_MESSAGE, whatsappLink } from "@/lib/whatsapp";
 import { Crumbs, Footer, SetupPrice, SiteHeader } from "@/components/site";
 import { Stepper, useQuote } from "@/components/quote";
 import {
+  annualFreeText,
   computeQuote,
   downloadQuotePdf,
   money,
@@ -79,19 +90,68 @@ const FIELD_ORDER: FieldKey[] = ["name", "restaurant", "address", "city", "phone
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 /** Validation en français, qui remplace les bulles natives du navigateur. */
-function validate(c: Customer): Errors {
+function validate(c: Customer, country: string): Errors {
   const e: Errors = {};
   if (!c.name.trim()) e.name = "Indiquez votre nom.";
   if (!c.restaurant.trim()) e.restaurant = "Indiquez le nom de votre commerce.";
   if (!c.city.trim()) e.city = "Indiquez votre ville.";
-  const digits = c.phone.replace(/\D/g, "");
-  if (!c.phone.trim()) e.phone = "Indiquez un numéro de téléphone pour qu'on vous rappelle.";
-  else if (!/^[+\d\s.()-]+$/.test(c.phone.trim()) || digits.length < 9 || digits.length > 15)
-    e.phone = "Ce numéro semble incomplet. Exemple\u00a0:\u00a006\u00a012\u00a034\u00a056\u00a078.";
+  const phoneErr = phoneError(country, c.phone, true);
+  if (phoneErr) e.phone = phoneErr;
   if (!c.email.trim()) e.email = "Indiquez votre adresse e-mail.";
   else if (!EMAIL_RE.test(c.email.trim()))
     e.email = "Cette adresse e-mail semble incorrecte. Exemple\u00a0:\u00a0nom@exemple.fr.";
   return e;
+}
+
+function PhoneField({
+  value,
+  country,
+  error,
+  onChange,
+  onCountryChange,
+  onBlur,
+}: {
+  value: string;
+  country: string;
+  error?: string | undefined;
+  onChange: (v: string) => void;
+  onCountryChange: (code: string) => void;
+  onBlur: () => void;
+}) {
+  const inputId = "devis-phone";
+  const errId = `${inputId}-err`;
+  const ctry = getCountry(country);
+  return (
+    <div>
+      <label htmlFor={inputId} className="label mb-2 block text-muted-foreground">
+        Téléphone *
+      </label>
+      <div className="flex gap-2">
+        <CountrySelect value={country} invalid={!!error} onChange={onCountryChange} />
+        <input
+          id={inputId}
+          name="phone"
+          type="tel"
+          inputMode="tel"
+          autoComplete="tel-national"
+          aria-required
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? errId : undefined}
+          placeholder={ctry.example}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onBlur={onBlur}
+          className={`min-w-0 flex-1 scroll-mt-32 border-2 bg-transparent px-4 py-3 focus:border-primary ${error ? "border-red-500" : "border-paper/20"}`}
+        />
+      </div>
+      {error && (
+        <p id={errId} className="mt-2 text-sm font-semibold text-red-400">
+          <span aria-hidden>! </span>
+          {error}
+        </p>
+      )}
+    </div>
+  );
 }
 
 function Field({
@@ -154,6 +214,21 @@ function Done({
   const [copied, setCopied] = useState(false);
   const [dlError, setDlError] = useState(false);
   const text = quoteText(snapshot, customer, num);
+  const offerName = computeQuote(snapshot).offer?.name;
+  const waNotify = whatsappLink(
+    [
+      `Bonjour ${COMPANY.firstName},`,
+      "",
+      `Je viens de faire le devis ${num} sur votre site.`,
+      `Commerce\u00a0: ${customer.restaurant} (${customer.city})`,
+      offerName ? `Formule\u00a0: ${offerName}` : "",
+      `Nom\u00a0: ${customer.name}`,
+      "",
+      "Pouvez-vous me recontacter\u00a0?",
+    ]
+      .filter((l, i, a) => l !== "" || a[i - 1] !== "")
+      .join("\n"),
+  );
   return (
     <section className="mx-auto max-w-3xl px-5 py-24">
       <p className="label mb-6 text-primary">Devis {num}</p>
@@ -173,8 +248,8 @@ function Done({
         )}
         {sent === "sent" && (
           <p>
-            <span aria-hidden>✓ </span>Une copie nous a été envoyée : nous vous appelons très vite
-            pour en parler.
+            <span aria-hidden>✓ </span>Une copie nous a été envoyée : nous vous recontactons très
+            vite sur WhatsApp pour en parler.
           </p>
         )}
         {sent === "mailto" && (
@@ -194,6 +269,17 @@ function Done({
           Ce devis est gratuit et ne vous engage pas tant qu'il n'est pas signé.
         </p>
       </div>
+      {waNotify && (
+        <a
+          href={waNotify}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-10 flex items-center justify-center gap-3 bg-[#25D366] px-6 py-4 text-lg font-bold text-black sm:inline-flex"
+        >
+          <WhatsAppIcon className="size-6 shrink-0" />
+          Prévenir {COMPANY.firstName} sur WhatsApp
+        </a>
+      )}
       <div className="mt-10 flex flex-wrap gap-4">
         <button
           type="button"
@@ -248,7 +334,10 @@ function Done({
 
 function DevisPage() {
   const { quote, loaded, setOffer, setQty, setExtraSites, setBilling, reset } = useQuote();
-  const [c, setC] = useState<Customer>(emptyCustomer);
+  const [form, setForm] = useState<Customer>(emptyCustomer);
+  const [country, setCountry] = useState(DEFAULT_COUNTRY);
+  // Coordonnées envoyées (devis, PDF, e-mail) : téléphone au format international.
+  const c: Customer = { ...form, phone: formatPhone(country, form.phone) };
   const [status, setStatus] = useState<Status>("idle");
   const [num, setNum] = useState("");
   const [pdfOk, setPdfOk] = useState(false);
@@ -260,14 +349,24 @@ function DevisPage() {
   const priced = options.filter((o) => o.amount !== null);
   const set = (k: keyof Customer) => (e: { target: { value: string } }) => {
     const value = e.target.value;
-    setC((x) => ({ ...x, [k]: value }));
+    setForm((x) => ({ ...x, [k]: value }));
     // Une erreur affichée disparaît dès que le champ devient valide.
     if (errors[k as FieldKey])
-      setErrors((prev) => ({ ...prev, [k]: validate({ ...c, [k]: value })[k as FieldKey] }));
+      setErrors((prev) => ({
+        ...prev,
+        [k]: validate({ ...form, [k]: value }, country)[k as FieldKey],
+      }));
   };
+  const setPhoneErr = (msg: string | null) =>
+    setErrors((prev) => {
+      const next = { ...prev };
+      if (msg) next.phone = msg;
+      else delete next.phone;
+      return next;
+    });
   const fieldProps = (k: FieldKey) => ({
     id: k,
-    value: c[k],
+    value: form[k],
     onChange: set(k),
     error: errors[k],
   });
@@ -314,7 +413,7 @@ function DevisPage() {
   async function submit(e: FormEvent) {
     e.preventDefault();
     if (!quote.offer || status === "busy") return;
-    const errs = validate(c);
+    const errs = validate(form, country);
     setErrors(errs);
     const first = FIELD_ORDER.find((k) => errs[k]);
     if (first) {
@@ -388,7 +487,8 @@ function DevisPage() {
         </h1>
         <p className="mt-6 max-w-2xl text-lg text-muted-foreground">
           Choisissez votre formule et vos options, à votre rythme. Vous recevez votre devis en PDF
-          tout de suite, et nous en recevons une copie pour vous rappeler. Aucun paiement en ligne.
+          tout de suite, et nous en recevons une copie pour vous recontacter. Aucun paiement en
+          ligne.
         </p>
       </section>
 
@@ -419,7 +519,7 @@ function DevisPage() {
                   <span className="title block text-3xl">{o.name}</span>
                   <span className="mt-2 block font-bold">{o.price} / mois</span>
                   <span className="mt-1 block text-sm opacity-80">
-                    Installation : <SetupPrice setup={o.setup} />
+                    Installation : <SetupPrice setup={o.setup} />
                   </span>
                 </button>
               ))}
@@ -437,7 +537,8 @@ function DevisPage() {
           <div>
             <StepTitle n="02">vos options</StepTitle>
             <p className="mt-3 text-muted-foreground">
-              Facultatif. Payées une seule fois, à la signature.
+              Facultatif. Les options ponctuelles sont payées une seule fois, à la signature. Le
+              Pack réseaux sociaux est mensuel : il s'ajoute à votre abonnement.
             </p>
             <div className="mt-6 divide-y border">
               {priced.map((o) => (
@@ -454,6 +555,7 @@ function DevisPage() {
                     value={quote.qty[o.slug] ?? 0}
                     onChange={(n) => setQty(o.slug, n)}
                     label={o.name}
+                    max={optionMaxQty(o)}
                   />
                 </div>
               ))}
@@ -491,7 +593,9 @@ function DevisPage() {
                   [
                     "annual",
                     "Paiement annuel",
-                    `${12 - QUOTE_CONFIG.annualMonthsPaid} mois offerts sur l'année.`,
+                    r.recurringOptions.length
+                      ? `${annualFreeText(r.recurringOptions)}.`
+                      : `${12 - QUOTE_CONFIG.annualMonthsPaid} mois offerts sur l'année.`,
                   ],
                 ] as const
               ).map(([k, t, s]) => (
@@ -512,7 +616,7 @@ function DevisPage() {
           {/* 4. Coordonnées */}
           <div>
             <StepTitle n="04">vos coordonnées</StepTitle>
-            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            <div className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-4 sm:grid-cols-2">
               <Field label="Votre nom" required autoComplete="name" {...fieldProps("name")} />
               <Field
                 label="Nom du commerce"
@@ -526,13 +630,19 @@ function DevisPage() {
                 {...fieldProps("address")}
               />
               <Field label="Ville" required autoComplete="address-level2" {...fieldProps("city")} />
-              <Field
-                label="Téléphone"
-                required
-                type="tel"
-                inputMode="tel"
-                autoComplete="tel"
-                {...fieldProps("phone")}
+              <PhoneField
+                value={form.phone}
+                country={country}
+                error={errors.phone}
+                onChange={(v) => set("phone")({ target: { value: v } })}
+                onCountryChange={(code) => {
+                  setCountry(code);
+                  if (errors.phone || form.phone.trim())
+                    setPhoneErr(phoneError(code, form.phone, true));
+                }}
+                onBlur={() =>
+                  form.phone.trim() && setPhoneErr(phoneError(country, form.phone, true))
+                }
               />
               <Field
                 label="E-mail"
@@ -612,7 +722,10 @@ function DevisPage() {
                 </div>
                 {quote.billing === "annual" && (
                   <p className="mt-1 text-right text-sm opacity-70">
-                    au lieu de {money(r.monthlyTotal * 12)}
+                    au lieu de {money(r.annualFullPrice)}
+                    {r.recurringOptions.length > 0 && (
+                      <span className="block">{annualFreeText(r.recurringOptions)}</span>
+                    )}
                   </p>
                 )}
                 <p className="label mt-4 opacity-60">TVA non applicable : prix final</p>
