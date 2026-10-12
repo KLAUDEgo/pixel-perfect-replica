@@ -97,7 +97,7 @@ export const services: Service[] = [
       },
       {
         q: "Que deviennent les données de mes clients ?",
-        a: "Elles servent uniquement à votre programme de fidélité : jamais revendues, ni partagées avec d'autres commerces.",
+        a: "Elles servent uniquement à votre programme de fidélité : jamais revendues, ni partagées avec d'autres commerces. Vous pouvez les exporter à tout moment (Excel ou CSV).",
       },
     ],
     sections: [
@@ -431,17 +431,38 @@ export const services: Service[] = [
   {
     slug: "presentoir-comptoir",
     name: "Présentoir comptoir",
-    enClair: "Un présentoir en plexi avec QR code, posé près de la caisse.",
+    enClair:
+      "Un petit chevalet en L gravé à votre logo et à votre QR, posé près de la caisse, sans perçage.",
     steps: [
-      "On imprime le QR de votre carte.",
-      "On installe le présentoir près de la caisse.",
+      "On récupère votre logo et le QR de votre carte.",
+      "Votre présentoir est gravé au laser, avec votre texte si vous le souhaitez.",
+      "On le pose près de la caisse : il tient tout seul, sans fixation.",
       "Le client scanne en attendant sa commande.",
     ],
     example:
-      "Chez Smash Club, le présentoir est posé à côté du terminal de paiement : chaque client le voit en payant.",
-    benefits: ["Visible au meilleur moment", "Inscription en un scan", "Rien à expliquer"],
+      "Chez Smash Club, le présentoir noir gravé en blanc est posé à côté du terminal de paiement : chaque client le voit en payant.",
+    benefits: [
+      "Visible au meilleur moment",
+      "Gravé, donc lisible longtemps : résiste à l'eau, aux UV et aux rayures",
+      "Inscription en un scan, rien à expliquer",
+    ],
     faq: [
-      { q: "Faut-il le brancher ?", a: "Non, c'est un simple support." },
+      {
+        q: "Faut-il le brancher ou le fixer ?",
+        a: "Non. Il se pose et tient tout seul, sans perçage.",
+      },
+      {
+        q: "Comment est-il fait ?",
+        a: "C'est un chevalet en L de 7 × 6 cm, en acrylique bicouche de 1,6 mm gravé au laser, recto-verso. Il porte votre logo, votre QR et, si vous le souhaitez, un court texte (40 caractères max).",
+      },
+      {
+        q: "Quelles couleurs ?",
+        a: "6 finitions : argent, or, noir, vert, bleu ou bronze.",
+      },
+      {
+        q: "Peut-on le mettre en terrasse ?",
+        a: "Non, il est conçu pour l'intérieur : comptoir, caisse, tables.",
+      },
       {
         q: "Et s'il est abîmé ?",
         a: "Prévenez-nous : en cas de défaut, on le remplace gratuitement. Sinon, un nouveau présentoir est facturé au tarif de l'option.",
@@ -572,7 +593,7 @@ export const offers: Offer[] = [
     idealFor: "Idéal pour un petit commerce qui veut démarrer simplement.",
     installation: [
       "Création du design de la carte et paramétrage",
-      "1 présentoir QR en plexi pour le comptoir",
+      "1 présentoir QR gravé pour le comptoir",
       "1 sticker vitrine 20 × 20 cm",
       "Formation sur place (30 min avec l'équipe + 10 min avec le gérant)",
     ],

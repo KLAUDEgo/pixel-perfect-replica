@@ -6,8 +6,11 @@ import {
   CONTACT_EMAIL,
   HAS_PHONE,
   euros,
+  isPackOption,
   optionMaxQty,
   options,
+  packBreakdown,
+  packSplit,
 } from "@/data/content";
 import { offers, type OfferSlug } from "@/data/services";
 
@@ -41,9 +44,24 @@ export type Line = {
   note?: string;
   /** Ligne d'option (ponctuelle ou mensuelle). */
   option?: boolean;
-  /** Option mensuelle : facturée 12 mois sur 12 en paiement annuel (pas de mois offerts). */
+  /** Option mensuelle : facturée 12 mois sur 12 en paiement annuel (pas de mois offerts). */
   recurring?: boolean;
+  /**
+   * Option vendue à l'unité avec prix de lot (plaques, présentoirs) : qty = nombre d'unités,
+   * `unit` = prix moyen (non affiché), on affiche le détail du calcul à la place.
+   */
+  pack?: {
+    /** "plaques" / "plaque". */
+    unitWord: string;
+    /** "1 lot de 8 (49 €) + 3 à l'unité (27 €)". */
+    breakdown: string;
+    /** true si toutes les unités sont au prix unitaire (pas de lot) : `unit` est alors exact. */
+    atUnit: boolean;
+  };
 };
+
+/** Libellé court d'une ligne (sans la précision entre parenthèses). */
+export const lineName = (l: Line) => l.label.split(" (")[0] ?? l.label;
 
 /** Montant en euros, format français avec espaces insécables U+00A0 (compatibles PDF, contrairement à U+202F). */
 export const money = (n: number, alwaysCents = false) => {
@@ -111,9 +129,23 @@ export function computeQuote(q: QuoteState) {
         option: true,
         recurring: true,
       });
+    } else if (isPackOption(o)) {
+      // Plaques / présentoirs : prix au mieux (lots complets + reste à l'unité, plafonné au lot).
+      const s = packSplit(o, n);
+      const unitWord = n > 1 ? o.unit.many : o.unit.one;
+      const breakdown = packBreakdown(o, n);
+      setupLines.push({
+        label: `${o.name} (${n}\u00a0${unitWord})`,
+        qty: n,
+        unit: s.total / n,
+        total: s.total,
+        note: breakdown,
+        option: true,
+        pack: { unitWord, breakdown, atUnit: s.packs === 0 && !s.restIsPack },
+      });
     } else
       setupLines.push({
-        label: o.name.startsWith("Lot") ? o.name : `${o.name} (${o.unitLabel})`,
+        label: `${o.name} (${o.unitLabel})`,
         qty: n,
         unit: o.amount,
         total: n * o.amount,
@@ -131,9 +163,10 @@ export function computeQuote(q: QuoteState) {
   const annualFullPrice = monthlyTotal * 12;
   /** Paiement annuel : installation + options + 1re année, dus à la signature. */
   const annualDueAtSigning = setupTotal + annualTotal;
+  // Plaques et présentoirs comptent pour un élément, quel que soit le nombre d'unités.
   const optionCount = [...setupLines, ...monthlyLines]
     .filter((l) => l.option)
-    .reduce((s, l) => s + l.qty, 0);
+    .reduce((s, l) => s + (l.pack ? 1 : l.qty), 0);
   return {
     offer,
     setupLines,
@@ -167,7 +200,10 @@ export const annualFreeText = (recurringOptions: string[]) =>
 export function quoteText(q: QuoteState, c: Customer, num: string) {
   const r = computeQuote(q);
   const annual = q.billing === "annual";
-  const L = (l: Line) => `- ${l.label} : ${l.qty} x ${money(l.unit)} = ${money(l.total)}`;
+  const L = (l: Line) =>
+    l.pack
+      ? `- ${lineName(l)} : ${l.qty} → ${l.pack.breakdown} = ${money(l.total)}`
+      : `- ${l.label} : ${l.qty} x ${money(l.unit)} = ${money(l.total)}`;
   return [
     `DEVIS ${num} — ${frDate(new Date())}`,
     "",
@@ -297,7 +333,8 @@ export async function downloadQuotePdf(q: QuoteState, c: Customer, num: string) 
     lines.map((l) => [
       pdfText(l.label + (l.note ? `\n${l.note}` : "")),
       String(l.qty),
-      pdfMoney(l.unit),
+      // Plaques / présentoirs : prix au mieux (lots + unités), détaillé sous le libellé.
+      l.pack && !l.pack.atUnit ? "voir détail" : pdfMoney(l.unit),
       pdfMoney(l.total),
     ]);
   const yellow = [255, 214, 10] as [number, number, number];
@@ -516,7 +553,11 @@ export async function sendQuote(
     `Options : ${
       [...r.setupLines, ...r.monthlyLines]
         .filter((l) => l.option)
-        .map((l) => `${l.qty} x ${l.label}`)
+        .map((l) =>
+          l.pack
+            ? `${lineName(l)} : ${l.qty} → ${l.pack.breakdown} = ${money(l.total)}`
+            : `${l.qty} x ${l.label}`,
+        )
         .join(" ; ") || "aucune"
     }`,
     `Établissements en plus : ${q.extraSites}`,
