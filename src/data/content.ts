@@ -100,6 +100,17 @@ export const fmtEuros = (n: number) =>
 export const launchSetup = (setup: string) =>
   LAUNCH_OFFER.enabled ? fmtEuros(euros(setup) * (1 - LAUNCH_OFFER.discountPercent / 100)) : null;
 
+/**
+ * PLAQUES ET PRÉSENTOIRS QR — prix à l'unité et prix du lot (en euros, prix nets).
+ * Le client choisit un nombre d'unités ; le devis applique automatiquement le prix le plus
+ * avantageux : lots complets + reste à l'unité, sans jamais dépasser le prix d'un lot.
+ * Modifiez-les ici : page options, devis, PDF, e-mail et accueil se mettent à jour.
+ */
+export const PLAQUE_PRICING = { unitPrice: 9, pack: { size: 8, price: 49 } };
+export const PRESENTOIR_PRICING = { unitPrice: 16, pack: { size: 8, price: 99 } };
+/** Nombre maximal de plaques (ou de présentoirs) dans un devis. */
+const UNIT_MAX_QTY = 40;
+
 export type Option = {
   slug: string;
   name: string;
@@ -114,23 +125,104 @@ export type Option = {
   service?: string;
   /** true = option facturée chaque mois (ajoutée à l'abonnement, quantité 1 au plus). */
   recurring?: boolean;
+  /** Option vendue à l'unité (quantité = nombre d'unités), avec un prix de lot automatique. */
+  unitPrice?: number;
+  pack?: { size: number; price: number };
+  /** Nom de l'unité, ex. { one: "plaque", many: "plaques" }. */
+  unit?: { one: string; many: string };
 };
 
 /** Quantité maximale par option dans un devis (une option mensuelle : 1 au plus). */
 const OPTION_MAX_QTY = 20;
-export const optionMaxQty = (o: Option) => (o.recurring ? 1 : OPTION_MAX_QTY);
+export const optionMaxQty = (o: Option) =>
+  o.recurring ? 1 : o.pack ? UNIT_MAX_QTY : OPTION_MAX_QTY;
+
+/** Option vendue à l'unité avec prix de lot (plaques, présentoirs). */
+export type PackOption = Option & {
+  unitPrice: number;
+  pack: { size: number; price: number };
+  unit: { one: string; many: string };
+};
+export const isPackOption = (o: Option): o is PackOption =>
+  o.unitPrice !== undefined && o.pack !== undefined && o.unit !== undefined;
+
+/** "3 plaques", "1 plaque". */
+export const unitCount = (o: PackOption, n: number) =>
+  `${n}\u00a0${n > 1 ? o.unit.many : o.unit.one}`;
+
+/**
+ * Prix au mieux pour n unités : lots complets + reste à l'unité,
+ * le reste étant plafonné au prix d'un lot s'il coûte plus cher.
+ */
+export function packSplit(o: PackOption, n: number) {
+  const qty = Math.max(0, Math.floor(n));
+  const packs = Math.floor(qty / o.pack.size);
+  const rest = qty % o.pack.size;
+  const restAtUnit = rest * o.unitPrice;
+  const restIsPack = rest > 0 && restAtUnit > o.pack.price;
+  const restTotal = restIsPack ? o.pack.price : restAtUnit;
+  const packsTotal = packs * o.pack.price;
+  return { qty, packs, rest, packsTotal, restTotal, restIsPack, total: packsTotal + restTotal };
+}
+
+/** Montant d'une option pour une quantité donnée (prix de lot automatique s'il y a lieu). */
+export const optionTotal = (o: Option, n: number) =>
+  isPackOption(o) ? packSplit(o, n).total : n * (o.amount ?? 0);
+
+/** "9 € la plaque · 49 € les 8" (unitLabel = "la plaque", "le présentoir"). */
+export const packPriceText = (o: PackOption) =>
+  `${fmtEuros(o.unitPrice)} ${o.unitLabel} · ${fmtEuros(o.pack.price)} les ${o.pack.size}`;
+
+/** Détail du calcul, ex. "1 lot de 8 (49 €) + 3 à l'unité (27 €)". */
+export function packBreakdown(o: PackOption, n: number) {
+  const s = packSplit(o, n);
+  const parts: string[] = [];
+  if (s.packs > 0)
+    parts.push(
+      `${s.packs}\u00a0lot${s.packs > 1 ? "s" : ""} de ${o.pack.size} (${fmtEuros(s.packsTotal)})`,
+    );
+  if (s.rest > 0)
+    parts.push(
+      s.restIsPack
+        ? `${s.rest} au prix du lot (${fmtEuros(s.restTotal)})`
+        : `${s.rest} à l'unité (${fmtEuros(s.restTotal)})`,
+    );
+  return parts.join(" + ");
+}
+
+/**
+ * Phrase qui explique le prix appliqué, ex.
+ * "3 plaques : 27 €", "8 plaques : 49 € (prix du lot)",
+ * "6 plaques : 49 € — le prix du lot s'applique dès qu'il est plus avantageux",
+ * "11 plaques : 1 lot de 8 (49 €) + 3 à l'unité (27 €) = 76 €".
+ */
+export function packExplain(o: PackOption, n: number) {
+  const s = packSplit(o, n);
+  const head = `${unitCount(o, s.qty)}\u00a0: `;
+  if (s.qty === 0) return "";
+  if (s.packs === 0 && !s.restIsPack) return head + fmtEuros(s.total);
+  if (s.packs === 0 && s.restIsPack)
+    return `${head}${fmtEuros(s.total)} — le prix du lot s'applique dès qu'il est plus avantageux`;
+  if (s.rest === 0)
+    return `${head}${fmtEuros(s.total)} (prix du lot${s.packs > 1 ? `, ${s.packs} lots` : ""})`;
+  return `${head}${packBreakdown(o, n)} = ${fmtEuros(s.total)}`;
+}
 
 export const options: Option[] = [
   {
     slug: "plaques-qr-table",
-    name: "Lot de 8 plaques QR adhésives de table",
-    price: "49 €",
-    amount: 49,
-    unitLabel: "le lot de 8",
+    name: "Plaques QR adhésives",
+    price: fmtEuros(PLAQUE_PRICING.unitPrice),
+    amount: PLAQUE_PRICING.unitPrice,
+    unitLabel: "la plaque",
+    unitPrice: PLAQUE_PRICING.unitPrice,
+    pack: PLAQUE_PRICING.pack,
+    unit: { one: "plaque", many: "plaques" },
     enClair:
       "Des plaques QR collées sur vos tables ou votre comptoir : le client s'inscrit pendant qu'il attend.",
     includes: [
-      "8 plaques gravées, 5 finitions au choix",
+      "Plaques gravées, 5 finitions au choix",
+      `À l'unité, ou ${fmtEuros(PLAQUE_PRICING.pack.price)} les ${PLAQUE_PRICING.pack.size} : le prix le plus avantageux s'applique tout seul`,
       "Pose sur place",
       "Résistantes à l'eau et aux UV",
     ],
@@ -139,18 +231,24 @@ export const options: Option[] = [
   },
   {
     slug: "presentoirs-qr",
-    name: "Lot de 8 présentoirs QR en plexi",
-    price: "99 €",
-    amount: 99,
-    unitLabel: "le lot de 8",
-    enClair: "Des présentoirs en plexi avec votre QR, à poser sur les tables ou au comptoir.",
+    name: "Présentoirs QR gravés",
+    price: fmtEuros(PRESENTOIR_PRICING.unitPrice),
+    amount: PRESENTOIR_PRICING.unitPrice,
+    unitLabel: "le présentoir",
+    unitPrice: PRESENTOIR_PRICING.unitPrice,
+    pack: PRESENTOIR_PRICING.pack,
+    unit: { one: "présentoir", many: "présentoirs" },
+    enClair:
+      "Des petits chevalets gravés à votre logo et à votre QR, posés sur le comptoir ou les tables, sans perçage.",
     includes: [
-      "8 présentoirs en plexi",
-      "Affiches QR à vos couleurs glissées dedans",
+      "Chevalets en L de 7 × 6 cm, gravés au laser, recto-verso",
+      "Votre logo, votre QR et un texte facultatif (40 caractères max)",
+      "6 finitions : argent, or, noir, vert, bleu ou bronze",
+      `À l'unité, ou ${fmtEuros(PRESENTOIR_PRICING.pack.price)} les ${PRESENTOIR_PRICING.pack.size} : le prix le plus avantageux s'applique tout seul`,
       "Installation sur place",
     ],
     idealFor:
-      "Vous préférez des supports posés plutôt que collés, ou vous voulez en mettre partout.",
+      "Vous préférez des supports posés plutôt que collés, ou vous voulez en mettre sur chaque table et au comptoir.",
     service: "presentoir-comptoir",
   },
   {
@@ -266,8 +364,12 @@ export const faq: FaqGroup[] = [
         a: "Peu de messages : un rappel avant la récompense et, en Pro/Premium, une relance, l'anniversaire et 1 à 2 campagnes par mois. Désactivables à tout moment.",
       },
       {
+        q: "Que doit donner mon client pour s'inscrire ?",
+        a: "Son nom, son prénom, son numéro de téléphone et sa date d'anniversaire (pour lui souhaiter et lui offrir un petit cadeau). L'e-mail est facultatif.",
+      },
+      {
         q: "Et si un client n'a pas de smartphone, ou change de téléphone ?",
-        a: "Pas de problème : votre équipe le retrouve par son nom et lui ajoute ses tampons. S'il change de téléphone ou le perd, ses tampons sont conservés.",
+        a: "Pas de problème : votre équipe peut créer sa fiche elle-même et le retrouver par son nom. S'il change de téléphone en gardant ses données, sa carte le suit. Sinon, il se réinscrit en un scan et vous lui recréditez ses tampons depuis votre tableau de bord.",
       },
       {
         q: "Et pour la vente à emporter ou la livraison ?",
@@ -333,7 +435,7 @@ export const faq: FaqGroup[] = [
       },
       {
         q: "Y a-t-il un engagement ?",
-        a: "Non. Vous arrêtez quand vous voulez, avec un préavis d'un mois, sans frais. En paiement annuel, l'année réglée n'est pas remboursée. Vos données clients sont alors supprimées.",
+        a: "Non. Vous arrêtez quand vous voulez, avec un préavis d'un mois, sans frais. En paiement annuel, l'année réglée n'est pas remboursée. Avant l'arrêt, vous pouvez exporter la liste de vos clients (Excel ou CSV) ; elles sont ensuite supprimées.",
       },
       {
         q: "Comment se fait le paiement ?",
@@ -358,7 +460,7 @@ export const faq: FaqGroup[] = [
     items: [
       {
         q: "Que deviennent les données de mes clients ?",
-        a: "Elles servent uniquement à faire fonctionner votre programme de fidélité. Elles ne sont jamais revendues, ni partagées avec d'autres commerces, et ne sont pas conservées si vous arrêtez.",
+        a: "Elles servent uniquement à faire fonctionner votre programme de fidélité. Elles ne sont jamais revendues, ni partagées avec d'autres commerces, et ne sont pas conservées si vous arrêtez. À tout moment, vous pouvez exporter la liste de vos clients (Excel ou CSV) depuis votre tableau de bord.",
       },
       {
         q: "Est-ce conforme au RGPD ?",

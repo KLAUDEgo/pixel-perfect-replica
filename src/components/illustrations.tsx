@@ -1,7 +1,53 @@
-import type { ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { BubbleIcon, HeartIcon, PlayIcon, ShareIcon } from "@/components/previews/reseaux";
 
 /* Maquettes CSS dans la DA — aucune photo, aucun cartoon. */
+
+/**
+ * Compteur de scans qui monte d'un en un, de façon fluide, tant qu'il est
+ * visible (arrêté si l'utilisateur demande moins d'animations).
+ */
+function ScanCounter({ start = 1248 }: { start?: number }) {
+  const [n, setN] = useState(start);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let timer: number | undefined;
+    const tick = () => {
+      setN((v) => v + 1);
+      timer = window.setTimeout(tick, 900 + Math.random() * 700);
+    };
+    const io = new IntersectionObserver(([e]) => {
+      window.clearTimeout(timer);
+      if (e?.isIntersecting) timer = window.setTimeout(tick, 700);
+    });
+    io.observe(el);
+    return () => {
+      io.disconnect();
+      window.clearTimeout(timer);
+    };
+  }, []);
+  const digits = n.toLocaleString("fr-FR").split("");
+  return (
+    <div
+      ref={ref}
+      className="title flex h-24 items-center justify-center overflow-hidden text-7xl tabular-nums text-primary md:text-8xl"
+      aria-label={`${n} scans ce mois`}
+      role="img"
+    >
+      {digits.map((d, i) => (
+        <span
+          // La clé change quand le chiffre change : seul ce chiffre est animé.
+          key={`${digits.length - i}-${d}`}
+          className={/\d/.test(d) ? "count-tick inline-block" : "inline-block w-[0.25em]"}
+        >
+          {/\d/.test(d) ? d : "\u00a0"}
+        </span>
+      ))}
+    </div>
+  );
+}
 
 const Tag = ({ children }: { children: ReactNode }) => (
   <span className="label absolute right-3 top-3 bg-primary px-2 py-1 text-primary-foreground">
@@ -130,23 +176,7 @@ export function ServiceIllustration({ slug }: { slug: string }) {
         <Frame>
           <div className="text-center">
             <p className="label mb-3 text-muted-foreground">Scans ce mois</p>
-            <div className="title flex h-24 overflow-hidden text-8xl text-primary">
-              <span>1 2</span>
-              <span className="flex flex-col anim-count">
-                {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
-                  <span key={n} className="h-24">
-                    {n}
-                  </span>
-                ))}
-              </span>
-              <span className="flex flex-col anim-count" style={{ animationDuration: "1.2s" }}>
-                {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
-                  <span key={n} className="h-24">
-                    {n}
-                  </span>
-                ))}
-              </span>
-            </div>
+            <ScanCounter />
             <p className="label mt-3">0&nbsp;€ par client</p>
           </div>
           <Phone>
@@ -473,12 +503,18 @@ export function ServiceIllustration({ slug }: { slug: string }) {
           <div className="relative w-full max-w-lg">
             <div className="flex items-end justify-center gap-10">
               <div className="h-16 w-20 bg-muted" title="caisse" />
-              <div
-                className={`flex flex-col items-center gap-2 border-2 ${grave ? "border-primary" : "border-paper/50"} bg-paper/10 p-4 backdrop-blur`}
-              >
-                {grave && <span className="title text-sm text-primary">smash club</span>}
-                <QR size={72} />
-                <span className="label text-[0.6rem]">Scannez ici</span>
+              {/* chevalet en L gravé : face + pied posé sur le comptoir */}
+              <div className="flex flex-col items-center">
+                <div
+                  className={`flex flex-col items-center gap-2 border-2 bg-ink p-4 ${grave ? "border-primary" : "border-paper/50"}`}
+                >
+                  <span className="title text-sm text-paper">smash club</span>
+                  <QR size={72} />
+                  <span className="label text-[0.6rem] text-paper/80">Gravé au laser</span>
+                </div>
+                <div
+                  className={`h-2 w-[115%] -skew-x-[40deg] ${grave ? "bg-primary" : "bg-paper/50"}`}
+                />
               </div>
             </div>
             <div className="mt-0 h-6 bg-paper" />

@@ -159,6 +159,19 @@
     transform: translateY(-90%);
   }
 }
+@keyframes count-tick {
+  from {
+    transform: translateY(55%);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+.count-tick {
+  animation: count-tick 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
 @keyframes ping-y {
   0% {
     box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-primary) 70%, transparent);
@@ -214,6 +227,7 @@ textarea:focus-visible {
   }
   .anim-float,
   .anim-count,
+  .count-tick,
   .anim-ping,
   [class*="anim-"],
   [class*="animate-"] {

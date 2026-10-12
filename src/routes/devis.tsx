@@ -7,8 +7,11 @@ import {
   CONTACT_EMAIL,
   LAUNCH_OFFER,
   QUOTE_CONFIG,
+  isPackOption,
   optionMaxQty,
   options,
+  packExplain,
+  packPriceText,
 } from "@/data/content";
 import { WhatsAppIcon } from "@/components/whatsapp";
 import { offers } from "@/data/services";
@@ -19,6 +22,7 @@ import {
   annualFreeText,
   computeQuote,
   downloadQuotePdf,
+  lineName,
   money,
   quoteNumber,
   quoteText,
@@ -70,10 +74,19 @@ function Lines({ lines }: { lines: Line[] }) {
     <div className="space-y-2">
       {lines.map((l) => (
         <div key={l.label} className="flex justify-between gap-4 text-sm">
-          <span>
-            {l.qty > 1 ? `${l.qty} × ` : ""}
-            {l.label.split(" (")[0]}
-          </span>
+          {l.pack ? (
+            <span className="min-w-0">
+              {lineName(l)}
+              <span className="block text-xs opacity-70">
+                {l.qty} {l.pack.unitWord} : {l.pack.breakdown}
+              </span>
+            </span>
+          ) : (
+            <span className="min-w-0">
+              {l.qty > 1 ? `${l.qty} × ` : ""}
+              {lineName(l)}
+            </span>
+          )}
           <b className="whitespace-nowrap">{money(l.total)}</b>
         </div>
       ))}
@@ -548,13 +561,18 @@ function DevisPage() {
                       {o.name}
                     </Link>
                     <p className="label text-muted-foreground">
-                      {o.price} · {o.unitLabel}
+                      {isPackOption(o) ? packPriceText(o) : `${o.price} · ${o.unitLabel}`}
                     </p>
+                    {isPackOption(o) && (quote.qty[o.slug] ?? 0) > 0 && (
+                      <p className="mt-1 text-sm" aria-live="polite">
+                        {packExplain(o, quote.qty[o.slug] ?? 0)}
+                      </p>
+                    )}
                   </div>
                   <Stepper
                     value={quote.qty[o.slug] ?? 0}
                     onChange={(n) => setQty(o.slug, n)}
-                    label={o.name}
+                    label={isPackOption(o) ? `${o.name}, nombre de ${o.unit.many}` : o.name}
                     max={optionMaxQty(o)}
                   />
                 </div>

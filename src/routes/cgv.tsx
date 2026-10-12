@@ -167,7 +167,9 @@ function Cgv() {
           confidentialité, recours à un sous-traitant ultérieur (plateforme technique) soumis aux
           mêmes obligations, assistance pour les demandes d'exercice des droits, notification des
           violations dans les meilleurs délais, suppression des données en fin de contrat. Ces
-          données ne sont ni vendues ni partagées avec d'autres commerces.
+          données (nom, prénom, téléphone, date d'anniversaire et, si le porteur le souhaite,
+          e-mail) ne sont ni vendues ni partagées avec d'autres commerces. Le client peut les
+          exporter à tout moment depuis son tableau de bord, notamment avant la fin du contrat.
         </p>
         <p>
           Pour les données vous concernant en tant que client, voir notre{" "}

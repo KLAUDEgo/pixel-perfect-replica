@@ -11,7 +11,7 @@ import { DesignPreview } from "@/components/previews/design";
 /** Section « à quoi ça ressemble » : aperçu interactif du support, par service. */
 const LOOKS: Record<string, { intro: string; Preview: typeof PresentoirPreview }> = {
   "presentoir-comptoir": {
-    intro: "Le présentoir en plexi, avec l'affiche à vos couleurs. Essayez les styles ici.",
+    intro: "Le présentoir en L, gravé à votre logo et à votre QR. Essayez les finitions ici.",
     Preview: PresentoirPreview,
   },
   vitrophanie: {

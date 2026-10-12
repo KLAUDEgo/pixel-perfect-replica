@@ -1,10 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { LAUNCH_OFFER, POLICY, QUOTE_CONFIG, SOCIAL_PACK_MONTHLY, options } from "@/data/content";
+import {
+  LAUNCH_OFFER,
+  POLICY,
+  QUOTE_CONFIG,
+  SOCIAL_PACK_MONTHLY,
+  fmtEuros,
+  isPackOption,
+  options,
+} from "@/data/content";
 import { offers } from "@/data/services";
 import { CtaButton, Crumbs, Footer, Reveal, SetupPrice, SiteHeader } from "@/components/site";
 import { ServiceIllustration } from "@/components/illustrations";
-import { AddOptionButton } from "@/components/quote";
+import { AddOptionButton, PackOptionPicker } from "@/components/quote";
 import { PlaquePreview } from "@/components/plaque";
 import { PresentoirPreview } from "@/components/previews/presentoir";
 import { VitrophaniePreview } from "@/components/previews/vitrophanie";
@@ -103,10 +111,22 @@ function OptionCards() {
                     : "Option ponctuelle"}
               </p>
               <h2 className="title text-4xl md:text-5xl">{o.name}</h2>
-              <p className="mt-5 flex flex-wrap items-baseline gap-3">
-                <span className="title text-5xl text-primary">{o.price}</span>
-                <span className="label text-muted-foreground">{o.unitLabel}</span>
-              </p>
+              {isPackOption(o) ? (
+                <p className="mt-5 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                  <span className="title text-5xl text-primary">{o.price}</span>
+                  <span className="label text-muted-foreground">{o.unitLabel}</span>
+                  <span className="label hidden text-muted-foreground lg:inline">·</span>
+                  <span className="whitespace-nowrap">
+                    <span className="title text-5xl text-primary">{fmtEuros(o.pack.price)}</span>
+                    <span className="label ml-3 text-muted-foreground">les {o.pack.size}</span>
+                  </span>
+                </p>
+              ) : (
+                <p className="mt-5 flex flex-wrap items-baseline gap-3">
+                  <span className="title text-5xl text-primary">{o.price}</span>
+                  <span className="label text-muted-foreground">{o.unitLabel}</span>
+                </p>
+              )}
               <p className="mt-6 text-lg">
                 <span className="mark mr-2">En clair</span>
                 {o.enClair}
@@ -132,7 +152,9 @@ function OptionCards() {
                   Voir comment ça se passe →
                 </Link>
               )}
-              {o.amount !== null ? (
+              {isPackOption(o) ? (
+                <PackOptionPicker option={o} />
+              ) : o.amount !== null ? (
                 <AddOptionButton slug={o.slug} />
               ) : (
                 <Link
