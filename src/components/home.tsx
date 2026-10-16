@@ -315,7 +315,7 @@ function SectionTitle({
   id?: string;
 }) {
   return (
-    <div id={id} className="scroll-mt-24">
+    <div id={id} className="scroll-mt-[72px] lg:scroll-mt-24">
       {eyebrow && <p className="label mb-4 text-primary">{eyebrow}</p>}
       <h2 className="title text-4xl md:text-6xl">{children}</h2>
     </div>
@@ -501,7 +501,7 @@ export function Problem() {
   return (
     <section
       id="probleme"
-      className="mx-auto grid max-w-6xl scroll-mt-24 items-center gap-10 px-5 py-16 md:grid-cols-2 md:gap-12 md:py-20"
+      className="mx-auto grid max-w-6xl scroll-mt-[72px] lg:scroll-mt-24 items-center gap-10 px-5 py-16 md:grid-cols-2 md:gap-12 md:py-20"
     >
       <Reveal>
         <FoldTitle left="la carte" right={"papier\u00a0?"} />
@@ -539,7 +539,10 @@ export function Stats() {
   const shown = stats.filter((s) => !/milliard/i.test(s.unit)).slice(0, 3);
   const mobileHidden = shown.length === 3 ? 1 : -1;
   return (
-    <section id="chiffres" className="mx-auto max-w-6xl scroll-mt-24 px-5 py-16 md:py-20">
+    <section
+      id="chiffres"
+      className="mx-auto max-w-6xl scroll-mt-[72px] lg:scroll-mt-24 px-5 py-16 md:py-20"
+    >
       <FoldTitle left="les géants" right="l'ont compris." />
       <div className="mt-14 grid gap-10 md:grid-cols-3 md:gap-8">
         {shown.map((s, i) => (
@@ -721,7 +724,10 @@ export function HowItWorks() {
     item?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "start" });
   }
   return (
-    <section id="comment" className="mx-auto max-w-6xl scroll-mt-24 px-5 py-16 md:py-20">
+    <section
+      id="comment"
+      className="mx-auto max-w-6xl scroll-mt-[72px] lg:scroll-mt-24 px-5 py-16 md:py-20"
+    >
       <SectionTitle eyebrow="Comment ça marche">
         simple comme <span className="mark">un scan.</span>
       </SectionTitle>
@@ -784,7 +790,10 @@ export function DashboardPreview() {
     ["SL", "Sarah L.", 23],
   ];
   return (
-    <section id="tableau" className="mx-auto max-w-6xl scroll-mt-24 px-5 py-16 md:py-20">
+    <section
+      id="tableau"
+      className="mx-auto max-w-6xl scroll-mt-[72px] lg:scroll-mt-24 px-5 py-16 md:py-20"
+    >
       <div className="flex flex-wrap items-end justify-between gap-4">
         <SectionTitle eyebrow="Votre tableau de bord">
           vos clients, <span className="mark">enfin visibles.</span>
@@ -931,9 +940,25 @@ function keyServices(o: Offer, i: number) {
   return { prev, list: list.slice(0, 6) };
 }
 
-export function OffersSection() {
+/** Ouvre le comparatif (sous les cartes) et y fait défiler. */
+function openComparatif(e: { preventDefault: () => void }) {
+  const box = document.getElementById("comparatif");
+  if (!box) return;
+  e.preventDefault();
+  const details = box.querySelector("details");
+  if (details) details.open = true;
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  box.scrollIntoView({ block: "start", behavior: reduce ? "auto" : "smooth" });
+  history.replaceState(history.state, "", "#comparatif");
+}
+
+/** Section des formules ; `children` (le comparatif) s'affiche juste sous les cartes. */
+export function OffersSection({ children }: { children?: ReactNode }) {
   return (
-    <section id="offres" className="mx-auto max-w-6xl scroll-mt-24 px-5 py-16 md:py-20">
+    <section
+      id="offres"
+      className="mx-auto max-w-6xl scroll-mt-[72px] lg:scroll-mt-24 px-5 py-16 md:py-20"
+    >
       <SectionTitle eyebrow="Prix nets">
         3 formules, <span className="mark">sans surprise.</span>
       </SectionTitle>
@@ -994,12 +1019,20 @@ export function OffersSection() {
                   >
                     Voir le détail →
                   </Link>
+                  <a
+                    href="#comparatif"
+                    onClick={openComparatif}
+                    className="label inline-flex min-h-11 items-center justify-center underline-offset-4 opacity-80 hover:underline hover:opacity-100"
+                  >
+                    Comparer les formules ↓
+                  </a>
                 </div>
               </article>
             </Reveal>
           );
         })}
       </div>
+      {children}
       <p className="mt-8 font-semibold">TVA non applicable&nbsp;: prix final.</p>
       <p className="mt-2 text-muted-foreground">
         Abonnement par prélèvement SEPA, chaque mois ou une fois par an{" "}
@@ -1022,7 +1055,7 @@ const MIN_OPTION_PRICE = fmtEuros(
 
 export function OptionsSection() {
   return (
-    <section id="options" className="mx-auto max-w-6xl scroll-mt-24 px-5 py-4">
+    <section id="options" className="mx-auto max-w-6xl scroll-mt-[72px] lg:scroll-mt-24 px-5 py-4">
       <div className="flex flex-col gap-4 border-y border-paper/15 py-8 md:flex-row md:items-center md:justify-between md:gap-8">
         <p className="text-lg">
           <b>Options à la carte</b>&nbsp;: plaques et présentoirs QR, vitrophanie, flyers, nouveau
@@ -1093,7 +1126,10 @@ export function RoiSimulator() {
   const monthly = Math.round(clients * (share / 100) * extra * basket);
   const fr = (n: number) => n.toLocaleString("fr-FR");
   return (
-    <section id="simulateur" className="mx-auto max-w-6xl scroll-mt-24 px-5 py-16 md:py-20">
+    <section
+      id="simulateur"
+      className="mx-auto max-w-6xl scroll-mt-[72px] lg:scroll-mt-24 px-5 py-16 md:py-20"
+    >
       <SectionTitle eyebrow="Simulateur">
         combien ça peut vous <span className="mark">rapporter ?</span>
       </SectionTitle>
@@ -1213,7 +1249,10 @@ export function FaqSection() {
     .map((g) => ({ title: g.title, items: g.items.filter((f) => !first.includes(f)) }))
     .filter((g) => g.items.length > 0);
   return (
-    <section id="faq" className="mx-auto max-w-4xl scroll-mt-24 px-5 py-16 md:py-20">
+    <section
+      id="faq"
+      className="mx-auto max-w-4xl scroll-mt-[72px] lg:scroll-mt-24 px-5 py-16 md:py-20"
+    >
       <SectionTitle eyebrow="Vos questions">
         questions <span className="mark">fréquentes.</span>
       </SectionTitle>
@@ -1289,8 +1328,12 @@ export function ContactSection() {
   }
   const field =
     "w-full border-2 border-paper/20 bg-transparent px-4 py-3 outline-none focus:border-primary";
+  const lbl = "label mb-2 block text-muted-foreground";
   return (
-    <section id="contact" className="mx-auto max-w-6xl scroll-mt-24 px-5 py-16 md:py-24">
+    <section
+      id="contact"
+      className="mx-auto max-w-6xl scroll-mt-[72px] lg:scroll-mt-24 px-5 py-16 md:py-24"
+    >
       <div className="grid gap-14 md:grid-cols-2 md:items-center">
         <div>
           <h2 className="title text-5xl md:text-7xl">
@@ -1330,30 +1373,39 @@ export function ContactSection() {
             </div>
           )}
           <div className="grid gap-4 sm:grid-cols-2">
-            <input
-              name="Nom"
-              aria-label="Nom"
-              autoComplete="name"
-              required
-              placeholder="Votre nom"
-              className={field}
-            />
-            <input
-              name="Commerce"
-              aria-label="Nom du commerce"
-              autoComplete="organization"
-              required
-              placeholder="Nom du commerce"
-              className={field}
-            />
-            <input
-              name="Ville"
-              aria-label="Ville"
-              autoComplete="address-level2"
-              placeholder="Ville"
-              className={`${field} sm:col-span-2`}
-            />
+            <div>
+              <label htmlFor="contact-nom" className={lbl}>
+                Votre nom *
+              </label>
+              <input id="contact-nom" name="Nom" autoComplete="name" required className={field} />
+            </div>
+            <div>
+              <label htmlFor="contact-commerce" className={lbl}>
+                Nom du commerce *
+              </label>
+              <input
+                id="contact-commerce"
+                name="Commerce"
+                autoComplete="organization"
+                required
+                className={field}
+              />
+            </div>
             <div className="sm:col-span-2">
+              <label htmlFor="contact-ville" className={lbl}>
+                Ville (facultatif)
+              </label>
+              <input
+                id="contact-ville"
+                name="Ville"
+                autoComplete="address-level2"
+                className={field}
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label htmlFor="contact-phone" className={lbl}>
+                {viaWhatsApp ? "Téléphone (facultatif)" : "Téléphone *"}
+              </label>
               <div className="flex gap-2">
                 <CountrySelect
                   value={country}
@@ -1365,8 +1417,8 @@ export function ContactSection() {
                 />
                 <input
                   ref={phoneRef}
+                  id="contact-phone"
                   name="Téléphone"
-                  aria-label={viaWhatsApp ? "Téléphone (facultatif)" : "Téléphone"}
                   aria-invalid={phoneErr ? true : undefined}
                   aria-describedby={phoneErr ? "contact-phone-err" : undefined}
                   autoComplete="tel-national"
@@ -1380,7 +1432,6 @@ export function ContactSection() {
                   onBlur={() =>
                     phone.trim() && setPhoneErr(phoneError(country, phone, !viaWhatsApp))
                   }
-                  placeholder={viaWhatsApp ? "Téléphone (facultatif)" : "Téléphone"}
                   className={`${field} min-w-0 flex-1 ${phoneErr ? "!border-red-500" : ""}`}
                 />
               </div>
@@ -1392,13 +1443,12 @@ export function ContactSection() {
               )}
             </div>
           </div>
-          <textarea
-            name="Message"
-            aria-label="Message"
-            rows={4}
-            placeholder="Votre message (facultatif)"
-            className={field}
-          />
+          <div>
+            <label htmlFor="contact-message" className={lbl}>
+              Votre message (facultatif)
+            </label>
+            <textarea id="contact-message" name="Message" rows={4} className={field} />
+          </div>
           <button
             type="submit"
             className="w-full bg-primary px-7 py-4 text-lg font-bold text-primary-foreground transition-transform hover:-translate-y-0.5"

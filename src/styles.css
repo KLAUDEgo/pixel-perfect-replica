@@ -67,7 +67,7 @@
   --accent-foreground: var(--ink);
   --destructive: oklch(0.6 0.22 27);
   --destructive-foreground: var(--paper);
-  --border: oklch(1 0 0 / 14%);
+  --border: oklch(1 0 0 / 22%);
   --input: oklch(1 0 0 / 18%);
   --ring: oklch(0.885 0.18 95);
 }
@@ -75,6 +75,18 @@
 @layer base {
   * {
     border-color: var(--color-border);
+  }
+  :root {
+    /* Hauteur de la barre d'onglets mobile (0 dès lg ou quand le clavier est ouvert). */
+    --tabbar-h: calc(64px + env(safe-area-inset-bottom, 0px));
+  }
+  @media (min-width: 64rem) {
+    :root {
+      --tabbar-h: 0px;
+    }
+  }
+  html[data-typing] {
+    --tabbar-h: 0px;
   }
   body {
     background-color: var(--color-background);
@@ -208,6 +220,39 @@
   &::-webkit-scrollbar {
     display: none;
   }
+}
+
+/* Éléments fixes masqués pendant la saisie (clavier virtuel ouvert) */
+html[data-typing] .hide-when-typing {
+  display: none !important;
+}
+
+/* Toast de confirmation (ajout au devis) */
+@keyframes toast-in {
+  from {
+    transform: translateY(12px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+@utility anim-toast {
+  animation: toast-in 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Menu mobile : panneau qui monte du bas */
+@keyframes sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+@utility anim-sheet {
+  animation: sheet-in 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 /* Focus clavier bien visible */

@@ -53,7 +53,10 @@ export const Route = createFileRoute("/options")({
 function LaunchOffer() {
   if (!LAUNCH_OFFER.enabled) return null;
   return (
-    <section id="lancement" className="mx-auto max-w-6xl scroll-mt-24 px-5 pb-20">
+    <section
+      id="lancement"
+      className="mx-auto max-w-6xl scroll-mt-[72px] lg:scroll-mt-24 px-5 pb-20"
+    >
       <div className="bg-primary p-8 text-primary-foreground md:p-12">
         <p className="label">Offre de lancement</p>
         <h2 className="title mt-3 text-4xl md:text-6xl">
@@ -100,7 +103,7 @@ function OptionCards() {
         <Reveal key={o.slug}>
           <article
             id={o.slug}
-            className="grid scroll-mt-28 grid-cols-[minmax(0,1fr)] items-center gap-10 md:grid-cols-2"
+            className="grid scroll-mt-[72px] lg:scroll-mt-28 grid-cols-[minmax(0,1fr)] items-center gap-10 md:grid-cols-2"
           >
             <div className={i % 2 ? "md:order-2" : ""}>
               <p className="label mb-3 text-primary">
@@ -195,7 +198,10 @@ function OptionCards() {
 
 function QuoteCta() {
   return (
-    <section id="calculateur" className="mx-auto max-w-6xl scroll-mt-24 px-5 pb-24">
+    <section
+      id="calculateur"
+      className="mx-auto max-w-6xl scroll-mt-[72px] lg:scroll-mt-24 px-5 pb-24"
+    >
       <div className="panel-paper flex flex-col gap-6 p-8 md:flex-row md:items-center md:justify-between md:p-12">
         <div>
           <p className="label">Devis en ligne</p>

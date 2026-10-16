@@ -112,6 +112,7 @@ function OfferPage() {
       </section>
 
       <section className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-4 px-5 pb-24">
+        <ChooseOfferButton slug={o.slug} className="min-h-12 px-7 py-4 text-lg" />
         <Link
           to="/"
           hash="comparatif"

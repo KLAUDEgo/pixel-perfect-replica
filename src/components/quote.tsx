@@ -1,6 +1,21 @@
-import { Link, useNavigate } from "@tanstack/react-router";
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { isPackOption, optionMaxQty, options, packExplain, type PackOption } from "@/data/content";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import {
+  isPackOption,
+  optionMaxQty,
+  options,
+  packExplain,
+  unitCount,
+  type PackOption,
+} from "@/data/content";
 import { offers, type OfferSlug } from "@/data/services";
 import { emptyQuote, type Billing, type QuoteState } from "@/lib/quote";
 
@@ -55,7 +70,24 @@ type Ctx = {
   setExtraSites: (n: number) => void;
   setBilling: (b: Billing) => void;
   reset: () => void;
+  /** Dernière confirmation d'ajout d'option (affichée par <QuoteToast />). */
+  toast: Toast | null;
+  dismissToast: () => void;
 };
+
+type Toast = { id: number; text: string };
+
+/** « 2 plaques ajoutées », « Au devis : Pack réseaux sociaux ». */
+function addedText(slug: string, n: number) {
+  const o = options.find((x) => x.slug === slug);
+  if (!o) return "Ajouté à votre devis";
+  if (isPackOption(o)) {
+    // « plaque » → ajoutée(s), « présentoir » → ajouté(s).
+    const fem = o.unit.one.endsWith("e");
+    return `${unitCount(o, n)} ajouté${fem ? "e" : ""}${n > 1 ? "s" : ""}`;
+  }
+  return `Au devis\u00a0: ${n > 1 ? `${n}\u00a0× ` : ""}${o.name}`;
+}
 
 const QuoteContext = createContext<Ctx | null>(null);
 
@@ -92,20 +124,33 @@ export function QuoteProvider({ children }: { children: ReactNode }) {
     }
   }, [quote, loaded]);
 
+  const [toast, setToast] = useState<Toast | null>(null);
+  /** Confirme un ajout (quantité en hausse) d'une option. */
+  const notify = (slug: string, next: number) => {
+    if (next > (quote.qty[slug] ?? 0))
+      setToast((t) => ({ id: (t?.id ?? 0) + 1, text: addedText(slug, next) }));
+  };
+
   const value: Ctx = {
     quote,
     loaded,
     setOffer: (offer) => setQuote((q) => ({ ...q, offer })),
-    setQty: (slug, n) =>
-      setQuote((q) => ({ ...q, qty: { ...q.qty, [slug]: clamp(n, maxFor(slug)) } })),
-    addOne: (slug) =>
+    setQty: (slug, n) => {
+      notify(slug, clamp(n, maxFor(slug)));
+      setQuote((q) => ({ ...q, qty: { ...q.qty, [slug]: clamp(n, maxFor(slug)) } }));
+    },
+    addOne: (slug) => {
+      notify(slug, clamp((quote.qty[slug] ?? 0) + 1, maxFor(slug)));
       setQuote((q) => ({
         ...q,
         qty: { ...q.qty, [slug]: clamp((q.qty[slug] ?? 0) + 1, maxFor(slug)) },
-      })),
+      }));
+    },
     setExtraSites: (n) => setQuote((q) => ({ ...q, extraSites: clamp(n, MAX_SITES) })),
     setBilling: (billing) => setQuote((q) => ({ ...q, billing })),
     reset: () => setQuote(emptyQuote),
+    toast,
+    dismissToast: () => setToast(null),
   };
   return <QuoteContext.Provider value={value}>{children}</QuoteContext.Provider>;
 }
@@ -126,6 +171,131 @@ export function quoteCount(q: QuoteState) {
     return s + (n > 0 && isPackOption(o) ? 1 : n);
   }, 0);
   return (q.offer ? 1 : 0) + opts + q.extraSites;
+}
+
+/**
+ * Confirmation d'ajout d'une option : « 2 plaques ajoutées · Voir → ».
+ * Mobile : en haut, sous l'en-tête (ou en bas si le contrôle touché est en haut) ; desktop :
+ * en bas. 4 s. Seuls le lien et la croix sont cliquables : le reste laisse passer les taps.
+ * Inutile sur la page du devis, où le récapitulatif se met à jour sous les yeux.
+ */
+export function QuoteToast() {
+  const { toast, dismissToast } = useQuote();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  // Zone du dernier contrôle touché (ex. le stepper) : le toast ne doit pas la recouvrir.
+  const lastTap = useRef<{ top: number; bottom: number } | null>(null);
+  useEffect(() => {
+    const onDown = (e: PointerEvent) => {
+      const el = (e.target as Element | null)?.closest?.("button, a, [role=group]");
+      const r = (el ?? null)?.getBoundingClientRect();
+      lastTap.current = r
+        ? { top: r.top, bottom: r.bottom }
+        : { top: e.clientY, bottom: e.clientY };
+    };
+    document.addEventListener("pointerdown", onDown, { capture: true, passive: true });
+    return () => document.removeEventListener("pointerdown", onDown, { capture: true });
+  }, []);
+
+  // Mobile : en haut, juste sous l'en-tête (qui peut se masquer au défilement), sauf si le
+  // contrôle touché s'y trouve : alors en bas, au-dessus de la barre d'onglets. Desktop : en bas.
+  const [top, setTop] = useState<number | null>(null);
+  useLayoutEffect(() => {
+    if (!toast) return;
+    const mq = window.matchMedia("(max-width: 1023.98px)");
+    const headerBottom = () => {
+      const header = document.querySelector("header");
+      if (!header || document.documentElement.hasAttribute("data-header-hidden")) return 0;
+      // Position finale de l'en-tête collant (sans la translation en cours) : sous le bandeau
+      // tant qu'il est visible, sinon en haut de l'écran.
+      const banner = header.previousElementSibling?.getBoundingClientRect();
+      return Math.max(0, banner?.bottom ?? 0) + header.offsetHeight;
+    };
+    const TOAST_H = 64;
+    const t0 = headerBottom() + 8;
+    const tap = lastTap.current;
+    const atTop = mq.matches && !(tap && tap.bottom > t0 - 8 && tap.top < t0 + TOAST_H + 8);
+    let raf = 0;
+    const place = () => {
+      raf = 0;
+      setTop(atTop && mq.matches ? headerBottom() + 8 : null);
+    };
+    const schedule = () => {
+      if (!raf) raf = requestAnimationFrame(place);
+    };
+    place();
+    const mo = new MutationObserver(schedule);
+    mo.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-header-hidden"],
+    });
+    window.addEventListener("scroll", schedule, { passive: true });
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+      mo.disconnect();
+      window.removeEventListener("scroll", schedule);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [toast?.id]);
+  useEffect(() => {
+    if (!toast) return;
+    clearTimeout(timer.current);
+    timer.current = setTimeout(dismissToast, 4000);
+    return () => clearTimeout(timer.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [toast?.id]);
+  // Pas de confirmation qui traîne d'une page à l'autre.
+  useEffect(() => {
+    dismissToast();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
+  const show = !!toast && pathname !== "/devis";
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      className="pointer-events-none fixed inset-x-0 z-40 flex justify-center px-4 transition-[top] duration-200 motion-reduce:transition-none"
+      style={
+        top === null
+          ? { bottom: "calc(var(--tabbar-h) + 24px)" }
+          : { top: `calc(${top}px + env(safe-area-inset-top, 0px))` }
+      }
+    >
+      {show && (
+        <div
+          key={toast.id}
+          data-testid="quote-toast"
+          className="anim-toast pointer-events-none flex w-full max-w-md items-center justify-between gap-2 border-2 border-ink bg-paper py-1.5 pl-3 pr-0.5 sm:gap-3 sm:pl-4 text-ink shadow-[0_8px_24px_rgba(0,0,0,0.45)]"
+        >
+          <p className="min-w-0 text-[13px] font-semibold sm:text-sm">
+            <span aria-hidden>✓ </span>
+            {toast.text}
+          </p>
+          <span className="flex shrink-0 items-center">
+            <Link
+              to="/devis"
+              onClick={dismissToast}
+              aria-label="Voir le devis"
+              className="pointer-events-auto inline-flex min-h-11 items-center whitespace-nowrap bg-ink px-3 text-sm font-bold text-paper"
+            >
+              <span className="lg:hidden">Voir →</span>
+              <span className="hidden lg:inline">Voir le devis →</span>
+            </Link>
+            <button
+              type="button"
+              onClick={dismissToast}
+              aria-label="Fermer la confirmation"
+              data-testid="toast-close"
+              className="pointer-events-auto inline-flex size-11 items-center justify-center text-lg font-bold"
+            >
+              <span aria-hidden>×</span>
+            </button>
+          </span>
+        </div>
+      )}
+    </div>
+  );
 }
 
 /** Bouton "Mon devis" dans l'en-tête. */

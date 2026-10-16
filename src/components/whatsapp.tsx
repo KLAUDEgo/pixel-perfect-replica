@@ -17,7 +17,10 @@ export function WhatsAppIcon({ className }: { className?: string }) {
   );
 }
 
-/** Bouton WhatsApp flottant, présent sur toutes les pages (masqué si aucun numéro). */
+/**
+ * Bouton WhatsApp flottant, sur grand écran uniquement (≥ lg) : en dessous, WhatsApp est un
+ * onglet de la barre du bas. Masqué si aucun numéro.
+ */
 export function WhatsAppFloat() {
   const href = whatsappLink(WHATSAPP_DEFAULT_MESSAGE);
   if (!href) return null;
@@ -70,7 +73,7 @@ function FloatingLink({ href }: { href: string }) {
       rel="noopener noreferrer"
       aria-label="Écrivez-nous sur WhatsApp (nouvelle fenêtre)"
       data-testid="whatsapp-float"
-      className={`group fixed z-30 flex items-center gap-3 rounded-full outline-none transition-opacity duration-200 motion-reduce:transition-none ${covering ? "pointer-events-none opacity-0" : "opacity-100"}`}
+      className={`group fixed z-30 hidden items-center lg:flex gap-3 rounded-full outline-none transition-opacity duration-200 motion-reduce:transition-none ${covering ? "pointer-events-none opacity-0" : "opacity-100"}`}
       style={{
         right: "calc(1rem + env(safe-area-inset-right, 0px))",
         bottom: "calc(1rem + env(safe-area-inset-bottom, 0px))",
