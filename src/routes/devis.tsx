@@ -1,6 +1,6 @@
 import { DEFAULT_COUNTRY, formatPhone, getCountry, phoneError } from "@/lib/phone";
 import { CountrySelect } from "@/components/country-select";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type FormEvent, type InputHTMLAttributes } from "react";
 import {
   COMPANY,
@@ -15,8 +15,8 @@ import {
 } from "@/data/content";
 import { WhatsAppIcon } from "@/components/whatsapp";
 import { offers } from "@/data/services";
-import { WHATSAPP_DEFAULT_MESSAGE, whatsappLink } from "@/lib/whatsapp";
-import { Crumbs, Footer, SetupPrice, SiteHeader } from "@/components/site";
+import { whatsappLink } from "@/lib/whatsapp";
+import { Crumbs, Footer, SetupPrice, SiteHeader, pinHeader } from "@/components/site";
 import { Stepper, useQuote } from "@/components/quote";
 import {
   annualFreeText,
@@ -402,7 +402,51 @@ function DevisPage() {
   }, [status, loaded]);
   const showBar = loaded && !!quote.offer && status !== "done";
   const barVisible = showBar && !recapInView;
-  const hasFloat = !!whatsappLink(WHATSAPP_DEFAULT_MESSAGE);
+
+  // Étape 01 repliée quand on arrive avec une formule déjà choisie (ex. « Choisir cette
+  // formule ») : la page s'arrête sur cette ligne, juste sous l'en-tête, l'étape 02 suit.
+  // Sans formule, elle reste dépliée.
+  const [step1Collapsed, setStep1Collapsed] = useState(false);
+  const step1Ref = useRef<HTMLDivElement>(null);
+  const offerBtnsRef = useRef<HTMLDivElement>(null);
+  const arrived = useRef(false);
+  const locationHash = useRouterState({ select: (st) => st.location.hash });
+  const [scrollToStep1, setScrollToStep1] = useState(false);
+  useEffect(() => {
+    if (!loaded || arrived.current) return;
+    arrived.current = true;
+    if (!quote.offer || locationHash) return;
+    setStep1Collapsed(true);
+    setScrollToStep1(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loaded]);
+  useEffect(() => {
+    if (!scrollToStep1) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    // Après la remise en haut de page faite par le routeur.
+    const t = window.setTimeout(() => {
+      pinHeader();
+      step1Ref.current?.scrollIntoView({ block: "start", behavior: reduce ? "auto" : "smooth" });
+      setScrollToStep1(false);
+    }, 60);
+    return () => window.clearTimeout(t);
+  }, [scrollToStep1]);
+  // Devis vidé : l'étape 01 se redéplie (et le reste si une formule est rechoisie).
+  useEffect(() => {
+    if (loaded && !quote.offer) setStep1Collapsed(false);
+  }, [loaded, quote.offer]);
+  const chosen = offers.find((o) => o.slug === quote.offer);
+  const showStep1Summary = step1Collapsed && !!chosen;
+  const openStep1 = () => {
+    setStep1Collapsed(false);
+    requestAnimationFrame(() =>
+      offerBtnsRef.current?.querySelector<HTMLElement>("[aria-pressed=true]")?.focus(),
+    );
+  };
+
+  // « Une question, une précision ? » : replié derrière un bouton tant qu'il est vide.
+  const [noteOpen, setNoteOpen] = useState(false);
+  const noteRef = useRef<HTMLTextAreaElement>(null);
   const goToRecap = () => {
     const el = recapRef.current;
     if (!el) return;
@@ -490,7 +534,7 @@ function DevisPage() {
   }
 
   return (
-    <div className={showBar ? "pb-24 lg:pb-0" : undefined}>
+    <div className={showBar ? "pb-16 lg:pb-0" : undefined}>
       <SiteHeader />
       <Crumbs items={[{ label: "Mon devis" }]} />
       <section className="mx-auto max-w-6xl px-5 pb-10 pt-12">
@@ -513,41 +557,76 @@ function DevisPage() {
       >
         <div className="min-w-0 space-y-16">
           {/* 1. Formule */}
-          <div>
-            <StepTitle n="01">votre formule</StepTitle>
-            <div className="mt-6 grid gap-3 sm:grid-cols-3">
-              {offers.map((o) => (
+          <div ref={step1Ref} id="etape-formule" className="scroll-mt-[72px] lg:scroll-mt-28">
+            {showStep1Summary ? (
+              <div
+                data-testid="step1-summary"
+                className="flex items-center justify-between gap-2 border-2 border-primary py-1 pl-3 pr-1 sm:gap-4 sm:p-4"
+              >
+                <h2 className="flex min-w-0 items-center gap-2 sm:gap-3">
+                  <span className="label shrink-0 bg-primary px-1.5 py-1 text-primary-foreground sm:px-3 sm:py-2 sm:text-sm">
+                    01
+                  </span>
+                  <span className="min-w-0 text-sm font-bold sm:text-base">
+                    Formule {chosen.name} · {chosen.price}/mois{" "}
+                    <span aria-hidden className="text-primary">
+                      ✓
+                    </span>
+                    <span className="sr-only">(choisie)</span>
+                  </span>
+                </h2>
                 <button
                   type="button"
-                  key={o.slug}
-                  onClick={() => setOffer(o.slug)}
-                  aria-pressed={quote.offer === o.slug}
-                  className={`relative border-2 p-5 text-left transition-colors ${quote.offer === o.slug ? "border-primary bg-primary text-primary-foreground" : "border-paper/25 hover:border-paper"}`}
+                  onClick={openStep1}
+                  aria-expanded={false}
+                  aria-controls="step1-choices"
+                  className="inline-flex min-h-12 shrink-0 items-center px-2 text-sm font-bold underline underline-offset-4 hover:text-primary sm:border-2 sm:border-paper/40 sm:px-4 sm:no-underline"
                 >
-                  {o.featured && (
-                    <span className="label absolute -top-3 right-3 bg-paper px-2 py-0.5 text-ink">
-                      Recommandé
-                    </span>
-                  )}
-                  <span className="title block text-3xl">{o.name}</span>
-                  <span className="mt-2 block font-bold">{o.price} / mois</span>
-                  <span className="mt-1 block text-sm opacity-80">
-                    Installation : <SetupPrice setup={o.setup} />
-                  </span>
+                  Modifier
                 </button>
-              ))}
-            </div>
-            <p className="mt-3 text-sm text-muted-foreground">
-              Vous hésitez ?{" "}
-              <Link to="/" hash="offres" className="link-y text-foreground">
-                Comparez les formules
-              </Link>
-              .
-            </p>
+              </div>
+            ) : (
+              <div>
+                <StepTitle n="01">votre formule</StepTitle>
+                <div
+                  id="step1-choices"
+                  ref={offerBtnsRef}
+                  className="mt-6 grid gap-3 sm:grid-cols-3"
+                >
+                  {offers.map((o) => (
+                    <button
+                      type="button"
+                      key={o.slug}
+                      onClick={() => setOffer(o.slug)}
+                      aria-pressed={quote.offer === o.slug}
+                      className={`relative border-2 p-5 text-left transition-colors ${quote.offer === o.slug ? "border-primary bg-primary text-primary-foreground" : "border-paper/25 hover:border-paper"}`}
+                    >
+                      {o.featured && (
+                        <span className="label absolute -top-3 right-3 bg-paper px-2 py-0.5 text-ink">
+                          Recommandé
+                        </span>
+                      )}
+                      <span className="title block text-3xl">{o.name}</span>
+                      <span className="mt-2 block font-bold">{o.price} / mois</span>
+                      <span className="mt-1 block text-sm opacity-80">
+                        Installation : <SetupPrice setup={o.setup} />
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-3 text-sm text-muted-foreground">
+                  Vous hésitez ?{" "}
+                  <Link to="/" hash="offres" className="link-y text-foreground">
+                    Comparez les formules
+                  </Link>
+                  .
+                </p>
+              </div>
+            )}
           </div>
 
           {/* 2. Options */}
-          <div>
+          <div id="etape-options">
             <StepTitle n="02">vos options</StepTitle>
             <p className="mt-3 text-muted-foreground">
               Facultatif. Les options ponctuelles sont payées une seule fois, à la signature. Le
@@ -671,18 +750,33 @@ function DevisPage() {
                 {...fieldProps("email")}
               />
             </div>
-            <label className="mt-4 block">
-              <span className="label mb-2 block text-muted-foreground">
-                Une question, une précision ? (facultatif)
-              </span>
-              <textarea
-                value={c.message}
-                onChange={set("message")}
-                rows={3}
-                maxLength={500}
-                className="w-full border-2 border-paper/20 bg-transparent px-4 py-3 focus:border-primary"
-              />
-            </label>
+            {noteOpen || form.message ? (
+              <div className="mt-4">
+                <label htmlFor="devis-message" className="label mb-2 block text-muted-foreground">
+                  Une question, une précision ? (facultatif)
+                </label>
+                <textarea
+                  ref={noteRef}
+                  id="devis-message"
+                  value={c.message}
+                  onChange={set("message")}
+                  rows={3}
+                  maxLength={500}
+                  className="w-full border-2 border-paper/20 bg-transparent px-4 py-3 focus:border-primary"
+                />
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setNoteOpen(true);
+                  requestAnimationFrame(() => noteRef.current?.focus());
+                }}
+                className="label mt-4 inline-flex min-h-12 items-center border-2 border-dashed border-paper/40 px-4 hover:border-primary hover:text-primary"
+              >
+                + Ajouter une précision
+              </button>
+            )}
             <p className="mt-4 text-sm text-muted-foreground">
               Vos informations servent uniquement à établir votre devis et à vous recontacter.
             </p>
@@ -695,7 +789,7 @@ function DevisPage() {
             ref={recapRef}
             id="recap"
             tabIndex={-1}
-            className="panel-paper scroll-mt-28 p-7 outline-none lg:sticky lg:top-28"
+            className="panel-paper scroll-mt-[72px] p-7 outline-none lg:sticky lg:top-28 lg:scroll-mt-28"
           >
             <div className="flex items-center justify-between">
               <p className="label">Récapitulatif</p>
@@ -797,34 +891,27 @@ function DevisPage() {
           role="region"
           aria-label="Résumé de votre devis"
           data-testid="devis-bar"
-          className="panel-paper fixed inset-x-0 bottom-0 z-20 border-t-4 border-primary shadow-[0_-8px_24px_rgba(0,0,0,0.35)] lg:hidden"
-          style={{
-            paddingBottom: "env(safe-area-inset-bottom, 0px)",
-            paddingRight: hasFloat ? "calc(72px + env(safe-area-inset-right, 0px))" : undefined,
-          }}
+          className="panel-paper hide-when-typing fixed inset-x-0 z-30 border-t-4 border-primary shadow-[0_-8px_24px_rgba(0,0,0,0.35)] lg:hidden"
+          style={{ bottom: "calc(64px + env(safe-area-inset-bottom, 0px))" }}
         >
-          <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2.5">
-            <div className="min-w-0 leading-tight">
-              <p className="text-sm">
-                <span className="opacity-70">À la signature</span>{" "}
-                <b className="whitespace-nowrap">{money(r.setupTotal)}</b>
-              </p>
-              <p className="text-sm">
-                <b className="whitespace-nowrap">
-                  {money(quote.billing === "annual" ? r.annualTotal : r.monthlyTotal)}
-                </b>{" "}
-                <span className="opacity-70">
-                  {quote.billing === "annual" ? "par an" : "par mois"}
-                </span>
-              </p>
-            </div>
+          <div className="mx-auto flex h-[52px] max-w-6xl items-center justify-between gap-3 pl-4 pr-2">
+            <p className="min-w-0 truncate text-sm">
+              <b className="whitespace-nowrap">{money(r.setupTotal)}</b>{" "}
+              <span className="opacity-70">à la signature</span>
+              <span className="opacity-70"> · </span>
+              <b className="whitespace-nowrap">
+                {money(quote.billing === "annual" ? r.annualTotal : r.monthlyTotal)}
+                {quote.billing === "annual" ? "/an" : "/mois"}
+              </b>
+            </p>
             <button
               type="button"
               onClick={goToRecap}
               aria-controls="recap"
-              className="inline-flex min-h-11 shrink-0 items-center bg-ink px-4 text-sm font-bold text-paper"
+              aria-label="Voir le récapitulatif"
+              className="inline-flex h-11 shrink-0 items-center bg-ink px-4 text-sm font-bold text-paper"
             >
-              Voir le récap ↓
+              Récap ↓
             </button>
           </div>
         </div>

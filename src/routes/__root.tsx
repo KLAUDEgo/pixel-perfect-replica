@@ -10,9 +10,9 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
-import { QuoteProvider } from "../components/quote";
+import { QuoteProvider, QuoteToast } from "../components/quote";
 import { WhatsAppFloat } from "../components/whatsapp";
-import { NotFoundPage } from "../components/site";
+import { MobileTabBar, NotFoundPage } from "../components/site";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
@@ -61,7 +61,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
     ],
     links: [
       {
@@ -99,8 +99,13 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <QuoteProvider>
-        <Outlet />
+        {/* Réserve la place de la barre d'onglets mobile : rien n'est masqué en bas de page. */}
+        <div className="pb-[calc(64px+env(safe-area-inset-bottom,0px))] lg:pb-0">
+          <Outlet />
+        </div>
+        <QuoteToast />
         <WhatsAppFloat />
+        <MobileTabBar />
       </QuoteProvider>
     </QueryClientProvider>
   );
